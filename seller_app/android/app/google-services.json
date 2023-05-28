@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "181239189384",
+    "project_id": "fooddeliveryapp-785a0",
+    "storage_bucket": "fooddeliveryapp-785a0.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:181239189384:android:d2101e23b1aabab97a343d",
+        "android_client_info": {
+          "package_name": "com.harendra_prajapati_iphtech.seller_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "181239189384-90jb67r6j6p6fjv1fttqpqf3hfm9eech.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCWVEJunIScMMTO_jvU8vA1MB5z5fYeqOw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "181239189384-90jb67r6j6p6fjv1fttqpqf3hfm9eech.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
