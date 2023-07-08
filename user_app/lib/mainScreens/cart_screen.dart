@@ -40,7 +40,7 @@ class _CartScreenState extends State<CartScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.red, Colors.redAccent],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],
@@ -54,7 +54,7 @@ class _CartScreenState extends State<CartScreen> {
             },
             icon: const Icon(Icons.clear_all)),
         title: const Text(
-          "iFood",
+          "I-Eat",
           style: TextStyle(fontSize: 45, fontFamily: "Signatra"),
         ),
         centerTitle: true,
@@ -80,7 +80,7 @@ class _CartScreenState extends State<CartScreen> {
                 Fluttertoast.showToast(msg: "cart has been cleared");
               },
               label: const Text("Clear Cart"),
-              backgroundColor: Colors.cyan,
+              backgroundColor: Colors.redAccent,
               icon: const Icon(Icons.clear_all),
             ),
           ),
@@ -98,7 +98,7 @@ class _CartScreenState extends State<CartScreen> {
                             )));
               },
               label: const Text("Check Out"),
-              backgroundColor: Colors.cyan,
+              backgroundColor: Colors.redAccent,
               icon: const Icon(Icons.navigate_next),
             ),
           ),

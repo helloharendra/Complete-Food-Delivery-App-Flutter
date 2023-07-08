@@ -19,9 +19,11 @@ class _MenusDesignWidgetState extends State<MenusDesignWidget> {
     return InkWell(
       onTap: () {
         Navigator.push(
-            context, MaterialPageRoute(builder: (context) => ItemsScreen(model:widget.model)));
+            context,
+            MaterialPageRoute(
+                builder: (context) => ItemsScreen(model: widget.model)));
       },
-      splashColor: Colors.amber,
+      splashColor: Colors.pinkAccent,
       child: Padding(
         padding: const EdgeInsets.all(5),
         child: Container(
@@ -44,7 +46,7 @@ class _MenusDesignWidgetState extends State<MenusDesignWidget> {
             Text(
               widget.model!.menuTitle!,
               style: const TextStyle(
-                  color: Colors.cyan, fontSize: 20, fontFamily: "Train"),
+                  color: Colors.pinkAccent, fontSize: 20, fontFamily: "Train"),
             ),
             Text(
               widget.model!.menuInfo!,

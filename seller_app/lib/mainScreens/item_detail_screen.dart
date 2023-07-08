@@ -6,7 +6,6 @@ import "package:seller_app/model/items.dart";
 import "package:seller_app/splashScreen/splash_screen.dart";
 import "package:seller_app/widgets/simple_Appbar.dart";
 
-
 class ItemDetailsScreen extends StatefulWidget {
   final Items? model;
   const ItemDetailsScreen({super.key, this.model});
@@ -18,27 +17,34 @@ class ItemDetailsScreen extends StatefulWidget {
 class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
   TextEditingController counterTextEditingController = TextEditingController();
 
-deleteItem(String itemId){
-  FirebaseFirestore.instance.collection("sellers")
-  .doc(sharedPreferences!.getString("uid"))
-  .collection("menus").doc(widget.model!.menuId!)
-  .collection("items").doc(itemId).delete().then((value) {
-    FirebaseFirestore.instance.collection("items").doc(itemId).delete();
+  deleteItem(String itemId) {
+    FirebaseFirestore.instance
+        .collection("sellers")
+        .doc(sharedPreferences!.getString("uid"))
+        .collection("menus")
+        .doc(widget.model!.menuId!)
+        .collection("items")
+        .doc(itemId)
+        .delete()
+        .then((value) {
+      FirebaseFirestore.instance.collection("items").doc(itemId).delete();
 
-    Fluttertoast.showToast(msg: "item deleted successfully");
-    Navigator.push(context, MaterialPageRoute(builder: (context)=>const MySplashScreen()));
-  });
+      Fluttertoast.showToast(msg: "item deleted successfully");
+      Navigator.push(context,
+          MaterialPageRoute(builder: (context) => const MySplashScreen()));
+    });
+  }
 
-}
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: SimpleAppBar(title: sharedPreferences!.getString("name"),),
+      appBar: SimpleAppBar(
+        title: sharedPreferences!.getString("name"),
+      ),
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Image.network(widget.model!.thumbnailUrl.toString()),
-          
           Padding(
             padding: const EdgeInsets.all(8.0),
             child: Text(
@@ -76,12 +82,13 @@ deleteItem(String itemId){
           Center(
             child: InkWell(
               onTap: () {
-                deleteItem(widget.model!.itemId!);       
-                },
+                deleteItem(widget.model!.itemId!);
+              },
               child: Container(
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.cyan, Colors.amber],
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: [Colors.pinkAccent, Colors.redAccent],
                     begin: FractionalOffset(0.0, 0.0),
                     end: FractionalOffset(1.0, 0.0),
                     stops: [0.0, 1.0],

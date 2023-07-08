@@ -46,8 +46,7 @@ class _ParcelPickingScreenState extends State<ParcelPickingScreen> {
     getSellerData();
   }
 
-  confirmParcelHasBeenPicked(
-    getOrederId, sellerId, purchaserId,
+  confirmParcelHasBeenPicked(getOrederId, sellerId, purchaserId,
       purchaserAddress, purchaserLat, purchaserLng) {
     FirebaseFirestore.instance.collection("orders").doc(getOrederId).update({
       "status": "delivering",
@@ -70,7 +69,6 @@ class _ParcelPickingScreenState extends State<ParcelPickingScreen> {
 
   @override
   Widget build(BuildContext context) {
-
     return Scaffold(
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -106,6 +104,7 @@ class _ParcelPickingScreenState extends State<ParcelPickingScreen> {
                     Text(
                       "Show Cafe/Restaurent Location",
                       style: TextStyle(
+                          color: Colors.blue,
                           fontSize: 18,
                           letterSpacing: 2,
                           fontFamily: "Signatra"),
@@ -136,9 +135,10 @@ class _ParcelPickingScreenState extends State<ParcelPickingScreen> {
                 },
                 child: Container(
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.cyan, Colors.amber],
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    gradient: const LinearGradient(
+                      colors: [Colors.pinkAccent, Colors.red],
                       begin: FractionalOffset(0.0, 0.0),
                       end: FractionalOffset(1.0, 0.0),
                       stops: [0.0, 1.0],
@@ -160,6 +160,5 @@ class _ParcelPickingScreenState extends State<ParcelPickingScreen> {
         ],
       ),
     );
-  
   }
 }

@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
+import 'package:user_app/Home/home.dart';
 import 'package:user_app/assistant_methods/assistant_methods.dart';
 
 import 'package:user_app/models/sellers.dart';
@@ -63,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.red, Colors.redAccent],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],
@@ -72,7 +73,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         title: const Text(
-          "iFood",
+          "I-Eat",
           style: TextStyle(fontFamily: "Signatra", fontSize: 40),
         ),
         centerTitle: true,
@@ -82,47 +83,52 @@ class _HomeScreenState extends State<HomeScreen> {
       body: CustomScrollView(
         slivers: [
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Container(
-                height: MediaQuery.of(context).size.height * .3,
-                width: MediaQuery.of(context).size.width,
-                child: CarouselSlider(
-                  items: items.map((Index) {
-                    return Builder(builder: (BuildContext context) {
-                      return Container(
-                        width: MediaQuery.of(context).size.width,
-                        margin: const EdgeInsets.symmetric(horizontal: 1.0),
-                        decoration: BoxDecoration(
-                            color: Colors.black,
-                            borderRadius: BorderRadius.circular(10)),
-                        child: Padding(
-                            padding: const EdgeInsets.all(4.0),
-                            child: Image.asset(
-                              Index,
-                              fit: BoxFit.fill,
-                            )),
-                      );
-                    });
-                  }).toList(),
-                  options: CarouselOptions(
-                    height: 500,
-                    aspectRatio: 16 / 9,
-                    viewportFraction: 0.8,
-                    initialPage: 0,
-                    enableInfiniteScroll: true,
-                    reverse: false,
-                    autoPlay: true,
-                    autoPlayInterval: const Duration(seconds: 2),
-                    autoPlayAnimationDuration:
-                        const Duration(milliseconds: 500),
-                    autoPlayCurve: Curves.decelerate,
-                    enlargeCenterPage: true,
-                    enlargeFactor: 0.3,
-                    scrollDirection: Axis.horizontal,
+            child: Column(
+              children: [
+                Home(),
+                Padding(
+                  padding: const EdgeInsets.all(10.0),
+                  child: Container(
+                    height: MediaQuery.of(context).size.height * .3,
+                    width: MediaQuery.of(context).size.width,
+                    child: CarouselSlider(
+                      items: items.map((Index) {
+                        return Builder(builder: (BuildContext context) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width,
+                            margin: const EdgeInsets.symmetric(horizontal: 1.0),
+                            decoration: BoxDecoration(
+                                color: Colors.black,
+                                borderRadius: BorderRadius.circular(10)),
+                            child: Padding(
+                                padding: const EdgeInsets.all(4.0),
+                                child: Image.asset(
+                                  Index,
+                                  fit: BoxFit.fill,
+                                )),
+                          );
+                        });
+                      }).toList(),
+                      options: CarouselOptions(
+                        height: 500,
+                        aspectRatio: 16 / 9,
+                        viewportFraction: 0.8,
+                        initialPage: 0,
+                        enableInfiniteScroll: true,
+                        reverse: false,
+                        autoPlay: true,
+                        autoPlayInterval: const Duration(seconds: 2),
+                        autoPlayAnimationDuration:
+                            const Duration(milliseconds: 500),
+                        autoPlayCurve: Curves.decelerate,
+                        enlargeCenterPage: true,
+                        enlargeFactor: 0.3,
+                        scrollDirection: Axis.horizontal,
+                      ),
+                    ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
           StreamBuilder<QuerySnapshot>(

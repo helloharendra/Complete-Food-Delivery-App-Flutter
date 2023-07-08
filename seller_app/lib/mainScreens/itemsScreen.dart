@@ -8,7 +8,6 @@ import 'package:seller_app/widgets/items_design.dart';
 import 'package:seller_app/widgets/my_drower.dart';
 import 'package:seller_app/widgets/progress_bar.dart';
 
-
 import '../model/menus.dart';
 import '../widgets/info_design.dart';
 import '../widgets/text_widget_header.dart';
@@ -29,7 +28,7 @@ class _ItemsScreenState extends State<ItemsScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.red, Colors.pinkAccent],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],

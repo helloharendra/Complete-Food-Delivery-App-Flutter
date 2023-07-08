@@ -32,13 +32,15 @@ class _AllVerifiedSellersScreenState extends State<AllVerifiedSellersScreen> {
             ),
           ),
           actions: [
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text("No"),
+              child: const Text(
+                "No",
+              ),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 Map<String, dynamic> userDataMap = {
                   "status": "Blocked",
@@ -63,7 +65,10 @@ class _AllVerifiedSellersScreenState extends State<AllVerifiedSellersScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
                 });
               },
-              child: const Text("Yes"),
+              child: const Text(
+                "Yes",
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );

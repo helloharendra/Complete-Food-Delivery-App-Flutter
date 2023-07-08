@@ -1,8 +1,9 @@
+// ignore_for_file: unrelated_type_equality_checks
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:rider_app/mainScreens/order_details_screen.dart';
 import 'package:rider_app/models/items.dart';
-
 
 class OrderCard extends StatelessWidget {
   final int? itemCount;

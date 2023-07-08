@@ -31,13 +31,13 @@ class _AllVerifiedUsersScreenState extends State<AllVerifiedUsersScreen> {
             ),
           ),
           actions: [
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
               child: const Text("No"),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 Map<String, dynamic> userDataMap = {
                   "status": "Blocked",
@@ -62,7 +62,10 @@ class _AllVerifiedUsersScreenState extends State<AllVerifiedUsersScreen> {
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
                 });
               },
-              child: const Text("Yes"),
+              child: const Text(
+                "Yes",
+                style: TextStyle(color: Colors.red),
+              ),
             ),
           ],
         );

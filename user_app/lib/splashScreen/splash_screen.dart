@@ -38,8 +38,8 @@ class _MySplashScreenState extends State<MySplashScreen> {
       decoration: const BoxDecoration(
           gradient: LinearGradient(
               colors: [
-                Colors.amber,
-                Colors.cyan,
+                Colors.pinkAccent,
+                Colors.redAccent,
               ],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
@@ -73,7 +73,7 @@ class _MySplashScreenState extends State<MySplashScreen> {
                     "World's Largest & No.1 Food Delivery App",
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                        color: Colors.black54,
+                        color: Colors.white,
                         fontSize: 24,
                         fontFamily: "Signatra",
                         letterSpacing: 3),

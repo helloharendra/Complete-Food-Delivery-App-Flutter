@@ -85,7 +85,7 @@ class _PlacedOrderScreenState extends State<PlacedOrderScreen> {
       child: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.cyan, Colors.amber],
+            colors: [Colors.white, Colors.red],
             begin: FractionalOffset(0.0, 0.0),
             end: FractionalOffset(1.0, 0.0),
             stops: [0.0, 1.0],
@@ -99,7 +99,7 @@ class _PlacedOrderScreenState extends State<PlacedOrderScreen> {
             onPressed: () {
               addOrderDetails();
             },
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.redAccent),
             child: const Text('Place order'),
           )
         ]),

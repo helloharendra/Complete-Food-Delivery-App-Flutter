@@ -19,9 +19,9 @@ class _LoginScreenState extends State<LoginScreen> {
     SnackBar snackBar = const SnackBar(
       content: Text(
         "Loading..",
-        style: TextStyle(fontSize: 36, color: Colors.black),
+        style: TextStyle(fontSize: 36, color: Colors.white),
       ),
-      backgroundColor: Colors.cyanAccent,
+      backgroundColor: Colors.pink,
       duration: Duration(seconds: 3),
     );
     ScaffoldMessenger.of(context).showSnackBar(snackBar);
@@ -94,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: Colors.amber,
+                            color: Colors.pink,
                             width: 2,
                           ),
                         ),
@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderSide: BorderSide(
-                            color: Colors.amber,
+                            color: Colors.pink,
                             width: 2,
                           ),
                         ),
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             horizontal: 100, vertical: 20),
                       ),
                       backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.cyan),
+                          MaterialStateProperty.all<Color>(Colors.pink),
                       foregroundColor:
                           MaterialStateProperty.all<Color>(Colors.cyanAccent),
                     ),

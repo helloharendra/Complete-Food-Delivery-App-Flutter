@@ -27,7 +27,7 @@ class _MenusScreenState extends State<MenusScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.red, Colors.redAccent],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],
@@ -43,9 +43,9 @@ class _MenusScreenState extends State<MenusScreen> {
                   MaterialPageRoute(
                       builder: (context) => const MySplashScreen()));
             },
-            icon: Icon(Icons.arrow_back)),
+            icon: const Icon(Icons.arrow_back)),
         title: const Text(
-          "iFood",
+          "I-Eat",
           style: TextStyle(fontSize: 45, fontFamily: "Signatra"),
         ),
         centerTitle: true,

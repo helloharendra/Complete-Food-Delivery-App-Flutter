@@ -18,7 +18,7 @@ class StatusBanner extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.cyan, Colors.amber],
+          colors: [Colors.pinkAccent, Colors.redAccent],
           begin: FractionalOffset(0.0, 0.0),
           end: FractionalOffset(1.0, 0.0),
           stops: [0.0, 1.0],

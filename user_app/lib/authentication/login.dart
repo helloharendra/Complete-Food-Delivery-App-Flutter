@@ -153,7 +153,7 @@ class _LoginScreenState extends State<LoginScreen> {
               formValidation();
             },
             style: ElevatedButton.styleFrom(
-                primary: Colors.purple,
+                primary: Colors.pink.shade300,
                 padding:
                     const EdgeInsets.symmetric(horizontal: 50, vertical: 20)),
             child: const Text(

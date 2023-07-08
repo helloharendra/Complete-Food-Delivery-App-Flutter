@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../mainScreens/home_screen.dart';
 
-
 class StatusBanner extends StatelessWidget {
   final bool? status;
   final String? orderStatus;
@@ -20,7 +19,7 @@ class StatusBanner extends StatelessWidget {
     return Container(
       decoration: const BoxDecoration(
         gradient: LinearGradient(
-          colors: [Colors.cyan, Colors.amber],
+          colors: [Colors.red, Colors.pinkAccent],
           begin: FractionalOffset(0.0, 0.0),
           end: FractionalOffset(1.0, 0.0),
           stops: [0.0, 1.0],

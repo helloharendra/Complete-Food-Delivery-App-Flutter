@@ -17,7 +17,10 @@ class _SellersDesignWidgetState extends State<SellersDesignWidget> {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: () {
-        Navigator.push(context, MaterialPageRoute(builder: (context)=>MenusScreen(model:widget.model)));
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => MenusScreen(model: widget.model)));
       },
       splashColor: Colors.amber,
       child: Padding(
@@ -42,7 +45,7 @@ class _SellersDesignWidgetState extends State<SellersDesignWidget> {
             Text(
               widget.model!.sellerName!,
               style: const TextStyle(
-                  color: Colors.cyan, fontSize: 20, fontFamily: "Train"),
+                  color: Colors.pinkAccent, fontSize: 20, fontFamily: "Train"),
             ),
             Text(
               widget.model!.sellerEmail!,

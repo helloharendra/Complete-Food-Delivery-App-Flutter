@@ -120,8 +120,9 @@ class ShipmentAddressDesign extends StatelessWidget {
                     },
                     child: Container(
                       alignment: Alignment.center,
-                      decoration: const BoxDecoration(
-                        gradient: LinearGradient(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10),
+                        gradient: const LinearGradient(
                           colors: [Colors.cyan, Colors.amber],
                           begin: FractionalOffset(0.0, 0.0),
                           end: FractionalOffset(1.0, 0.0),
@@ -153,9 +154,10 @@ class ShipmentAddressDesign extends StatelessWidget {
               },
               child: Container(
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.cyan, Colors.amber],
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: [Colors.redAccent, Colors.pinkAccent],
                     begin: FractionalOffset(0.0, 0.0),
                     end: FractionalOffset(1.0, 0.0),
                     stops: [0.0, 1.0],

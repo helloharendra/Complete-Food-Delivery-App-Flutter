@@ -26,9 +26,10 @@ class _HistoryScreenState extends State<HistoryScreen> {
         body: StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection("orders")
-              .where("sellerUID", isEqualTo: sharedPreferences!.getString("uid"))
+              .where("sellerUID",
+                  isEqualTo: sharedPreferences!.getString("uid"))
               .where("status", isEqualTo: "ended")
-              .orderBy("orderTime",descending: true)
+              .orderBy("orderTime", descending: true)
               .snapshots(),
           builder: (c, snapshot) {
             return snapshot.hasData
@@ -42,10 +43,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
                                 whereIn: separateOrderItemIds(
                                     (snapshot.data?.docs[index].data()
                                         as Map<String, dynamic>)["productIds"]))
-                                        .where("sellerUID",
+                            .where("sellerUID",
                                 whereIn: (snapshot.data?.docs[index].data()
                                     as Map<String, dynamic>)["uid"])
-                           
                             .orderBy("publishedDate", descending: true)
                             .get(),
                         builder: (c, snap) {

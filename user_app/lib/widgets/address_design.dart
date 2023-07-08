@@ -40,7 +40,7 @@ class _AddressDesignState extends State<AddressDesign> {
             .displayResult(widget.value);
       },
       child: Card(
-        color: Colors.cyan.withOpacity(0.4),
+        color: Colors.pinkAccent.withOpacity(0.4),
         child: Column(
           children: [
             Row(
@@ -48,7 +48,7 @@ class _AddressDesignState extends State<AddressDesign> {
                 Radio(
                   value: widget.value!,
                   groupValue: widget.curretIndex!,
-                  activeColor: Colors.amber,
+                  activeColor: Colors.red,
                   onChanged: (val) {
                     Provider.of<AddressChanger>(context, listen: false)
                         .displayResult(val);
@@ -158,7 +158,7 @@ class _AddressDesignState extends State<AddressDesign> {
                                   )));
                     },
                     style:
-                        ElevatedButton.styleFrom(backgroundColor: Colors.green),
+                        ElevatedButton.styleFrom(backgroundColor: Colors.red),
                     child: const Text('Proceed'),
                   )
                 : Container(),

@@ -29,7 +29,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
             padding: const EdgeInsets.all(8.0),
             child: NumberInputPrefabbed.roundedButtons(
               controller: counterTextEditingController,
-              incDecBgColor: Colors.amber,
+              incDecBgColor: Colors.pinkAccent,
               min: 1,
               max: 9,
               initialValue: 1,
@@ -84,7 +84,7 @@ class _ItemDetailsScreenState extends State<ItemDetailsScreen> {
               child: Container(
                 decoration: const BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [Colors.cyan, Colors.amber],
+                    colors: [Colors.redAccent, Colors.pinkAccent],
                     begin: FractionalOffset(0.0, 0.0),
                     end: FractionalOffset(1.0, 0.0),
                     stops: [0.0, 1.0],

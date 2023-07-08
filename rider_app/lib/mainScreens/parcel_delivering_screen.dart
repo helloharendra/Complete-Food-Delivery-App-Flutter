@@ -29,15 +29,14 @@ class ParcelDeliveringScreen extends StatefulWidget {
 }
 
 class _ParcelDeliveringScreenState extends State<ParcelDeliveringScreen> {
-
-String orderTotalAmount="";
-
+  String orderTotalAmount = "";
 
   confirmParcelHasBeenDelivered(getOrederId, sellerId, purchaserId,
       purchaserAddress, purchaserLat, purchaserLng) {
-
-        String riderNewTotolEarningAmount=(double.tryParse(previousRidersEarnings+perParcelDeliveryAmount)).toString();
-        // ((double.parse(previousRidersEarnings))+(double.parse(perParcelDeliveryAmount))).toString();
+    String riderNewTotolEarningAmount =
+        (double.tryParse(previousRidersEarnings + perParcelDeliveryAmount))
+            .toString();
+    // ((double.parse(previousRidersEarnings))+(double.parse(perParcelDeliveryAmount))).toString();
     FirebaseFirestore.instance.collection("orders").doc(getOrederId).update({
       "status": "ended",
       "address": completeAddress,
@@ -56,7 +55,9 @@ String orderTotalAmount="";
           .collection("sellers")
           .doc(widget.sellerId)
           .update({
-        "earnings": (double.parse(orderTotalAmount)+(double.parse(previousEarnings))).toString(),//new totla earning for sellers
+        "earnings":
+            (double.parse(orderTotalAmount) + (double.parse(previousEarnings)))
+                .toString(), //new totla earning for sellers
       });
     }).then((value) {
       FirebaseFirestore.instance
@@ -70,40 +71,38 @@ String orderTotalAmount="";
       });
     });
     Navigator.push(
-        context,
-        MaterialPageRoute(builder: (c) =>const MySplashScreen()
-        
-            ));
+        context, MaterialPageRoute(builder: (c) => const MySplashScreen()));
   }
 
-
-  getOrderTotalAmount(){
+  getOrderTotalAmount() {
     FirebaseFirestore.instance
-    .collection("orders")
-    .doc(widget.getOrderId).get()
-    .then((snap) {
- orderTotalAmount=snap.data()!["totolAmmount"].toString();
-widget.sellerId=snap.data()!["sellerUID"].toString(); 
+        .collection("orders")
+        .doc(widget.getOrderId)
+        .get()
+        .then((snap) {
+      orderTotalAmount = snap.data()!["totolAmmount"].toString();
+      widget.sellerId = snap.data()!["sellerUID"].toString();
     }).then((value) {
       getSellerData();
     });
-
   }
 
-  getSellerData(){
-     FirebaseFirestore.instance
-    .collection("sellers")
-    .doc(widget.sellerId).get().then((snap) {
-      previousEarnings=snap.data()!["earnings"].toString();
+  getSellerData() {
+    FirebaseFirestore.instance
+        .collection("sellers")
+        .doc(widget.sellerId)
+        .get()
+        .then((snap) {
+      previousEarnings = snap.data()!["earnings"].toString();
     });
   }
+
   @override
   void initState() {
     super.initState();
     UserLocation userLocation = UserLocation();
     userLocation.getCurrentLocation();
     getOrderTotalAmount();
-
   }
 
   @override
@@ -146,6 +145,7 @@ widget.sellerId=snap.data()!["sellerUID"].toString();
                     Text(
                       "Show Delivery Drop-off Location",
                       style: TextStyle(
+                          color: Colors.blue,
                           fontSize: 18,
                           letterSpacing: 2,
                           fontFamily: "Signatra"),
@@ -163,7 +163,6 @@ widget.sellerId=snap.data()!["sellerUID"].toString();
             child: Center(
               child: InkWell(
                 onTap: () {
-                  
                   //rider location
                   UserLocation userLocation = UserLocation();
                   userLocation.getCurrentLocation();
@@ -176,14 +175,14 @@ widget.sellerId=snap.data()!["sellerUID"].toString();
                       widget.purchaserLat,
                       widget.purchaserLng);
 
-                      // Navigator.push(context, MaterialPageRoute(builder: (context)=>MySplashScreen()));
-                      
+                  // Navigator.push(context, MaterialPageRoute(builder: (context)=>MySplashScreen()));
                 },
                 child: Container(
                   alignment: Alignment.center,
-                  decoration: const BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [Colors.cyan, Colors.amber],
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10),
+                    gradient: const LinearGradient(
+                      colors: [Colors.pinkAccent, Colors.red],
                       begin: FractionalOffset(0.0, 0.0),
                       end: FractionalOffset(1.0, 0.0),
                       stops: [0.0, 1.0],

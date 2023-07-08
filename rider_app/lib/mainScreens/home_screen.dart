@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
         decoration: index == 0 || index == 3 || index == 4
             ? const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [Colors.amber, Colors.cyan],
+                  colors: [Colors.redAccent, Colors.pinkAccent],
                   begin: FractionalOffset(0.0, 0.0),
                   end: FractionalOffset(1.0, 0.0),
                   stops: [0.0, 1.0],
@@ -56,17 +56,19 @@ class _HomeScreenState extends State<HomeScreen> {
             }
             if (index == 2) {
               // not yet delivered
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (c) => const NotYetDeliveredScreen()));
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (c) => const NotYetDeliveredScreen()));
             }
             if (index == 3) {
               // history
-               Navigator.push(context,
+              Navigator.push(context,
                   MaterialPageRoute(builder: (c) => const HistoryScreen()));
             }
             if (index == 4) {
               // total earning
-               Navigator.push(context,
+              Navigator.push(context,
                   MaterialPageRoute(builder: (c) => const EarningScreen()));
             }
             if (index == 5) {
@@ -116,24 +118,26 @@ class _HomeScreenState extends State<HomeScreen> {
     getPerParcelDeliveryAmount();
     getRiderPreviousEarnings();
   }
-  getRiderPreviousEarnings(){
-    FirebaseFirestore.instance
-  .collection("riders")
-  .doc(sharedPreferences!.getString("uid")).get().then((snap){
-    previousRidersEarnings=snap.data()!["earnings"].toString();
 
-  });
+  getRiderPreviousEarnings() {
+    FirebaseFirestore.instance
+        .collection("riders")
+        .doc(sharedPreferences!.getString("uid"))
+        .get()
+        .then((snap) {
+      previousRidersEarnings = snap.data()!["earnings"].toString();
+    });
   }
 
-getPerParcelDeliveryAmount(){
-  FirebaseFirestore.instance
-  .collection("perDelivery")
-  .doc("alizeb438")
-  .get().then((snap) {
-    perParcelDeliveryAmount=snap.data()!["amount"].toString();
-
-  });
-}
+  getPerParcelDeliveryAmount() {
+    FirebaseFirestore.instance
+        .collection("perDelivery")
+        .doc("alizeb438")
+        .get()
+        .then((snap) {
+      perParcelDeliveryAmount = snap.data()!["amount"].toString();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -142,7 +146,7 @@ getPerParcelDeliveryAmount(){
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.red, Colors.pink],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],
@@ -154,7 +158,7 @@ getPerParcelDeliveryAmount(){
           "Welcome ${sharedPreferences!.getString("name")!}",
           style: const TextStyle(
               fontSize: 25,
-              color: Colors.black,
+              color: Colors.white,
               letterSpacing: 2,
               fontFamily: "Signatra"),
         ),

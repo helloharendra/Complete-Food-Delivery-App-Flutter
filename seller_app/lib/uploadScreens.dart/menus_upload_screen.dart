@@ -31,7 +31,7 @@ class _MenusUploadScreenState extends State<MenusUploadScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.redAccent, Colors.pinkAccent],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],
@@ -58,7 +58,7 @@ class _MenusUploadScreenState extends State<MenusUploadScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.cyan, Colors.amber],
+            colors: [Colors.redAccent, Color.fromARGB(255, 255, 130, 130)],
             begin: FractionalOffset(0.0, 0.0),
             end: FractionalOffset(1.0, 0.0),
             stops: [0.0, 1.0],
@@ -68,14 +68,20 @@ class _MenusUploadScreenState extends State<MenusUploadScreen> {
         child: Center(
           child: Column(
             children: [
+              const SizedBox(
+                height: 100,
+              ),
               const Icon(
                 Icons.shop_two,
                 color: Colors.white,
                 size: 200,
               ),
+              const SizedBox(
+                height: 70,
+              ),
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: const MaterialStatePropertyAll(Colors.cyan),
+                  backgroundColor: const MaterialStatePropertyAll(Colors.red),
                   shape: MaterialStatePropertyAll(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -104,8 +110,8 @@ class _MenusUploadScreenState extends State<MenusUploadScreen> {
           return SimpleDialog(
             title: const Text(
               "Menu Image",
-              style:
-                  TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                  color: Colors.redAccent, fontWeight: FontWeight.bold),
             ),
             children: [
               SimpleDialogOption(
@@ -158,7 +164,7 @@ class _MenusUploadScreenState extends State<MenusUploadScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.redAccent, Colors.pinkAccent],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],
@@ -218,28 +224,7 @@ class _MenusUploadScreenState extends State<MenusUploadScreen> {
             ),
           ),
           const Divider(
-            color: Colors.amber,
-            thickness: 2,
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.perm_device_information,
-              color: Colors.cyan,
-            ),
-            title: Container(
-              width: 250,
-              child: TextField(
-                style: const TextStyle(color: Colors.black),
-                controller: shortInfoController,
-                decoration: const InputDecoration(
-                    hintText: "menu info",
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none),
-              ),
-            ),
-          ),
-          const Divider(
-            color: Colors.amber,
+            color: Colors.red,
             thickness: 2,
           ),
           ListTile(
@@ -260,7 +245,28 @@ class _MenusUploadScreenState extends State<MenusUploadScreen> {
             ),
           ),
           const Divider(
-            color: Colors.amber,
+            color: Colors.red,
+            thickness: 2,
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.perm_device_information,
+              color: Colors.cyan,
+            ),
+            title: Container(
+              width: 250,
+              child: TextField(
+                style: const TextStyle(color: Colors.black),
+                controller: shortInfoController,
+                decoration: const InputDecoration(
+                    hintText: "menu info",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none),
+              ),
+            ),
+          ),
+          const Divider(
+            color: Colors.red,
             thickness: 2,
           ),
         ],

@@ -21,7 +21,7 @@ class _AuthScreenState extends State<AuthScreen> {
           flexibleSpace: Container(
             decoration: const BoxDecoration(
               gradient: LinearGradient(
-                colors: [Colors.amber, Colors.cyan],
+                colors: [Colors.redAccent, Colors.pinkAccent],
                 begin: FractionalOffset(0.0, 0.0),
                 end: FractionalOffset(1.0, 0.0),
                 stops: [0.0, 1.0],
@@ -32,7 +32,7 @@ class _AuthScreenState extends State<AuthScreen> {
           automaticallyImplyLeading:
               false, //removes the default back arrow button from screen
           title: const Text(
-            'iFood',
+            'I-Eat',
             style: TextStyle(
                 fontSize: 60,
                 color: Colors.white,
@@ -66,7 +66,7 @@ class _AuthScreenState extends State<AuthScreen> {
             gradient: LinearGradient(
               begin: Alignment.topRight,
               end: Alignment.bottomLeft,
-              colors: [Colors.amber, Colors.cyan],
+              colors: [Colors.pinkAccent, Colors.redAccent],
             ),
           ),
           child: const TabBarView(children: [

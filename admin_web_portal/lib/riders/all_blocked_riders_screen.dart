@@ -31,13 +31,13 @@ class _AllBlockedRidersScreenState extends State<AllBlockedRidersScreen> {
             ),
           ),
           actions: [
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text("No"),
+              child: const Text("No", style: TextStyle(color: Colors.red)),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 Map<String, dynamic> userDataMap = {
                   "status": "Approved",
@@ -56,13 +56,16 @@ class _AllBlockedRidersScreenState extends State<AllBlockedRidersScreen> {
                       "UnBlocked Successfully",
                       style: TextStyle(fontSize: 36, color: Colors.black),
                     ),
-                    backgroundColor: Colors.pinkAccent,
+                    backgroundColor: Colors.green,
                     duration: Duration(seconds: 2),
                   );
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
                 });
               },
-              child: const Text("Yes"),
+              child: const Text(
+                "Yes",
+                style: TextStyle(color: Colors.green),
+              ),
             ),
           ],
         );

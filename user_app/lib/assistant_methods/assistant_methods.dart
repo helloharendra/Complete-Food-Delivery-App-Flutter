@@ -8,7 +8,7 @@ import 'package:user_app/global/global.dart';
 separateOrderItemIds(orderId) {
   List<String> separateItemIdsList = [], defaultItemList = [];
   int i = 0;
-  
+
   defaultItemList = List<String>.from(orderId);
 
   for (i; i < defaultItemList.length; i++) {

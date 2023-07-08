@@ -57,224 +57,222 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-    
-      backgroundColor: Colors.black,
-      appBar: AppBar(
-        flexibleSpace: Container(
-          
-          decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                  colors: [
-                    Colors.amber,
-                    Colors.cyan,
-                  ],
-                  begin: FractionalOffset(0, 0),
-                  end: FractionalOffset(1, 0),
-                  stops: [0, 1],
-                  tileMode: TileMode.clamp)),
+    return MaterialApp(
+      home: Scaffold(
+        backgroundColor: Colors.black,
+        appBar: AppBar(
+          flexibleSpace: Container(
+            decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                    colors: [
+                      Colors.redAccent,
+                      Colors.pinkAccent,
+                    ],
+                    begin: FractionalOffset(0, 0),
+                    end: FractionalOffset(1, 0),
+                    stops: [0, 1],
+                    tileMode: TileMode.clamp)),
+          ),
+          title: const Text(
+            "Admin Web Portal",
+            style:
+                TextStyle(fontSize: 20, letterSpacing: 3, color: Colors.white),
+          ),
+          centerTitle: true,
         ),
-        title: const Text(
-          "Admin Web Portal",
-          style: TextStyle(fontSize: 20, letterSpacing: 3, color: Colors.white),
-        ),
-        centerTitle: true,
-      ),
-      body: Center(
-        
-        child: Column(
-          
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: [
-            
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Text(
-                "$timeText\n$dateText",
-                style: const TextStyle(
-                    fontSize: 20,
-                    color: Colors.white,
-                    letterSpacing: 3,
-                    fontWeight: FontWeight.bold),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Text(
+                  "$timeText\n$dateText",
+                  style: const TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      letterSpacing: 3,
+                      fontWeight: FontWeight.bold),
+                ),
               ),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AllVerifiedUsersScreen()));
-                  },
-                  icon: const Icon(
-                    Icons.person_add,
-                    color: Colors.white,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const AllVerifiedUsersScreen()));
+                    },
+                    icon: const Icon(
+                      Icons.person_add,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      "All Verified Users " + "\n" + "Account".toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 16, color: Colors.white, letterSpacing: 3),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(40),
+                      primary: Colors.amber,
+                    ),
                   ),
-                  label: Text(
-                    "All Verified Users " + "\n" + "Account".toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 16, color: Colors.white, letterSpacing: 3),
+                  const SizedBox(
+                    width: 20,
                   ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(40),
-                    primary: Colors.amber,
-                  ),
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AllBlockedUsersScreen()));
-                  },
-                  icon: const Icon(
-                    Icons.block_flipped,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    "All Blocked Users " + " \n" + "Account".toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 16, color: Colors.white, letterSpacing: 3),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(40),
-                    primary: Colors.cyan,
-                  ),
-                )
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AllVerifiedSellersScreen()));
-                  },
-                  icon: const Icon(
-                    Icons.person_add,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    "All Verified Seller's " + "\n" + "Account".toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 16, color: Colors.white, letterSpacing: 3),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(40),
-                    primary: Colors.cyan,
-                  ),
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AllBlockedSellersScreen()));
-                  },
-                  icon: const Icon(
-                    Icons.block_flipped,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    "All Blocked Seller's " + " \n" + "Account".toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 16, color: Colors.white, letterSpacing: 3),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(40),
-                    primary: Colors.amber,
-                  ),
-                ),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AllVerifiedRidersScreen()));
-                  },
-                  icon: const Icon(
-                    Icons.person_add,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    "All Verified Riders " + "\n" + "Account".toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 16, color: Colors.white, letterSpacing: 3),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(40),
-                    primary: Colors.amber,
-                  ),
-                ),
-                const SizedBox(
-                  width: 20,
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                            builder: (context) =>
-                                const AllBlockedRidersScreen()));
-                  },
-                  icon: const Icon(
-                    Icons.block_flipped,
-                    color: Colors.white,
-                  ),
-                  label: Text(
-                    "All Blocked Riders " + " \n" + "Account".toUpperCase(),
-                    style: const TextStyle(
-                        fontSize: 16, color: Colors.white, letterSpacing: 3),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.all(40),
-                    primary: Colors.cyan,
-                  ),
-                )
-              ],
-            ),
-            ElevatedButton.icon(
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-                Navigator.push(context,
-                    MaterialPageRoute(builder: (context) => LoginScreen()));
-              },
-              icon: const Icon(
-                Icons.logout,
-                color: Colors.white,
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const AllBlockedUsersScreen()));
+                    },
+                    icon: const Icon(
+                      Icons.block_flipped,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      "All Blocked Users " + " \n" + "Account".toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 16, color: Colors.white, letterSpacing: 3),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(40),
+                      primary: Colors.pinkAccent,
+                    ),
+                  )
+                ],
               ),
-              label: Text(
-                "Logout".toUpperCase(),
-                style: const TextStyle(
-                    fontSize: 16, color: Colors.white, letterSpacing: 3),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const AllVerifiedSellersScreen()));
+                    },
+                    icon: const Icon(
+                      Icons.person_add,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      "All Verified Seller's " + "\n" + "Account".toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 16, color: Colors.white, letterSpacing: 3),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(40),
+                      primary: Colors.pinkAccent,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const AllBlockedSellersScreen()));
+                    },
+                    icon: const Icon(
+                      Icons.block_flipped,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      "All Blocked Seller's " + " \n" + "Account".toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 16, color: Colors.white, letterSpacing: 3),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(40),
+                      primary: Colors.amber,
+                    ),
+                  ),
+                ],
               ),
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.all(40),
-                primary: Colors.amber,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const AllVerifiedRidersScreen()));
+                    },
+                    icon: const Icon(
+                      Icons.person_add,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      "All Verified Riders " + "\n" + "Account".toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 16, color: Colors.white, letterSpacing: 3),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(40),
+                      primary: Colors.amber,
+                    ),
+                  ),
+                  const SizedBox(
+                    width: 20,
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) =>
+                                  const AllBlockedRidersScreen()));
+                    },
+                    icon: const Icon(
+                      Icons.block_flipped,
+                      color: Colors.white,
+                    ),
+                    label: Text(
+                      "All Blocked Riders " + " \n" + "Account".toUpperCase(),
+                      style: const TextStyle(
+                          fontSize: 16, color: Colors.white, letterSpacing: 3),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.all(40),
+                      primary: Colors.pinkAccent,
+                    ),
+                  )
+                ],
               ),
-            )
-          ],
+              ElevatedButton.icon(
+                onPressed: () {
+                  FirebaseAuth.instance.signOut();
+                  Navigator.push(context,
+                      MaterialPageRoute(builder: (context) => LoginScreen()));
+                },
+                icon: const Icon(
+                  Icons.logout,
+                  color: Colors.white,
+                ),
+                label: Text(
+                  "Logout".toUpperCase(),
+                  style: const TextStyle(
+                      fontSize: 16, color: Colors.white, letterSpacing: 3),
+                ),
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.all(40),
+                  primary: Colors.pinkAccent,
+                ),
+              )
+            ],
+          ),
         ),
       ),
     );

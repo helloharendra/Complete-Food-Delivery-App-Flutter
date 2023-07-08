@@ -25,7 +25,7 @@ class _AddressScreenState extends State<AddressScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: SimpleAppBar(
-        title: "iFood",
+        title: "I-Eat",
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -34,7 +34,7 @@ class _AddressScreenState extends State<AddressScreen> {
           // save address
         },
         label: const Text("Add New Address"),
-        backgroundColor: Colors.cyan,
+        backgroundColor: Colors.redAccent,
         icon: const Icon(
           Icons.add_location,
           color: Colors.white,

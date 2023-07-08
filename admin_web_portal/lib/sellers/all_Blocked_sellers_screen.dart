@@ -1,6 +1,7 @@
 import 'package:admin_web_portal/mainScreens/home_screen.dart';
 import 'package:admin_web_portal/widgets/simple_Appbar.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 
 class AllBlockedSellersScreen extends StatefulWidget {
@@ -13,31 +14,31 @@ class AllBlockedSellersScreen extends StatefulWidget {
 
 class _AllBlockedSellersScreenState extends State<AllBlockedSellersScreen> {
   QuerySnapshot? allSellers;
-  displayDilaugeBoxForUnBlockAccount(userDocumentID) {
+  displayDilaugeBoxForBlocAccount(userDocumentID) {
     return showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text(
-            "UnBlock Account",
+            "Unblock Account",
             style: TextStyle(
                 fontSize: 25, letterSpacing: 2, fontWeight: FontWeight.bold),
           ),
           content: const Text(
-            "Do you want to UnBlock this Account",
+            "Do you want to Unblock this Account",
             style: TextStyle(
               fontSize: 16,
               letterSpacing: 2,
             ),
           ),
           actions: [
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 Navigator.pop(context);
               },
-              child: const Text("No"),
+              child: const Text("No", style: TextStyle(color: Colors.red)),
             ),
-            ElevatedButton(
+            TextButton(
               onPressed: () {
                 Map<String, dynamic> userDataMap = {
                   "status": "Approved",
@@ -53,16 +54,19 @@ class _AllBlockedSellersScreenState extends State<AllBlockedSellersScreen> {
                           builder: (context) => const HomeScreen()));
                   SnackBar snackBar = const SnackBar(
                     content: Text(
-                      "Activated Successfully",
+                      "Unblocked Successfully",
                       style: TextStyle(fontSize: 36, color: Colors.black),
                     ),
-                    backgroundColor: Colors.pinkAccent,
+                    backgroundColor: Colors.green,
                     duration: Duration(seconds: 2),
                   );
                   ScaffoldMessenger.of(context).showSnackBar(snackBar);
                 });
               },
-              child: const Text("Yes"),
+              child: const Text(
+                "Yes",
+                style: TextStyle(color: Colors.green),
+              ),
             ),
           ],
         );
@@ -87,7 +91,7 @@ class _AllBlockedSellersScreenState extends State<AllBlockedSellersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    Widget displayBlockedSellersDesign() {
+    Widget displayVerifiedUsersDesign() {
       if (allSellers != null) {
         return ListView.builder(
           padding: const EdgeInsets.all(10),
@@ -142,9 +146,7 @@ class _AllBlockedSellersScreenState extends State<AllBlockedSellersScreen> {
                         color: Colors.white,
                       ),
                       label: Text(
-                        "Total Earnings".toUpperCase() +
-                            "₹" +
-                            allSellers!.docs[i].get('earnings').toString(),
+                        "Unlock this Account".toUpperCase(),
                         style: const TextStyle(
                           fontSize: 15,
                           color: Colors.white,
@@ -152,39 +154,7 @@ class _AllBlockedSellersScreenState extends State<AllBlockedSellersScreen> {
                         ),
                       ),
                       onPressed: () {
-                        SnackBar snackBar = SnackBar(
-                          content: Text(
-                            "Total Earnings".toUpperCase() +
-                                "₹" +
-                                allSellers!.docs[i].get('earnings').toString(),
-                            style: TextStyle(fontSize: 36, color: Colors.black),
-                          ),
-                          backgroundColor: Colors.amber,
-                          duration: Duration(seconds: 2),
-                        );
-                        ScaffoldMessenger.of(context).showSnackBar(snackBar);
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(10.0),
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(primary: Colors.green),
-                      icon: const Icon(
-                        Icons.person_pin_sharp,
-                        color: Colors.white,
-                      ),
-                      label: Text(
-                        "UnBlock this Account".toUpperCase(),
-                        style: const TextStyle(
-                          fontSize: 15,
-                          color: Colors.white,
-                          letterSpacing: 3,
-                        ),
-                      ),
-                      onPressed: () {
-                        displayDilaugeBoxForUnBlockAccount(
-                            allSellers!.docs[i].id);
+                        displayDilaugeBoxForBlocAccount(allSellers!.docs[i].id);
                       },
                     ),
                   )
@@ -209,7 +179,7 @@ class _AllBlockedSellersScreenState extends State<AllBlockedSellersScreen> {
       body: Center(
         child: Container(
           width: MediaQuery.of(context).size.width * 5,
-          child: displayBlockedSellersDesign(),
+          child: displayVerifiedUsersDesign(),
         ),
       ),
     );

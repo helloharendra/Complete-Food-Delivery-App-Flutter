@@ -120,7 +120,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void authenticateSellerAndSignUp() async {
     User? currentUser;
-   
+
     await firebaseAuth
         .createUserWithEmailAndPassword(
       email: emailController.text.trim(),
@@ -262,7 +262,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         style: TextStyle(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                          primary: Colors.amber,
+                          primary: Color.fromARGB(255, 250, 171, 119),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           )),
@@ -279,7 +279,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 formValidation(),
               },
               style: ElevatedButton.styleFrom(
-                  primary: Colors.purple,
+                  primary: Color.fromARGB(255, 249, 117, 161),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 50, vertical: 20)),
               child: const Text(

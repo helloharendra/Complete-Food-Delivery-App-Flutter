@@ -21,9 +21,7 @@ class ShipmentAddressDesign extends StatelessWidget {
       this.orderByUser});
 
   confirmPracelShipment(BuildContext context, String getOrderId,
-      String sellerId, String purchaserId) {
-
-  }
+      String sellerId, String purchaserId) {}
 
   @override
   Widget build(BuildContext context) {
@@ -78,7 +76,6 @@ class ShipmentAddressDesign extends StatelessWidget {
             textAlign: TextAlign.justify,
           ),
         ),
-        
         Padding(
           padding: const EdgeInsets.all(10.0),
           child: Center(
@@ -91,9 +88,10 @@ class ShipmentAddressDesign extends StatelessWidget {
               },
               child: Container(
                 alignment: Alignment.center,
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [Colors.cyan, Colors.amber],
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10),
+                  gradient: const LinearGradient(
+                    colors: [Colors.pinkAccent, Colors.redAccent],
                     begin: FractionalOffset(0.0, 0.0),
                     end: FractionalOffset(1.0, 0.0),
                     stops: [0.0, 1.0],
@@ -102,9 +100,9 @@ class ShipmentAddressDesign extends StatelessWidget {
                 ),
                 width: MediaQuery.of(context).size.width - 40,
                 height: 50,
-                child:  Center(
-                  child: Text( orderStatus=="ended" ?
-                    "Go Back": "Order Packing-Done",
+                child: Center(
+                  child: Text(
+                    orderStatus == "ended" ? "Go Back" : "Order Packing-Done",
                     style: TextStyle(color: Colors.white, fontSize: 15.0),
                   ),
                 ),

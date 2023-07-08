@@ -6,7 +6,7 @@ class ItemsDesignWidget extends StatefulWidget {
   Items? model;
   BuildContext? context;
 
-  ItemsDesignWidget({ this.model, this.context});
+  ItemsDesignWidget({this.model, this.context});
 
   @override
   State<ItemsDesignWidget> createState() => _ItemsDesignWidgetState();
@@ -47,7 +47,7 @@ class _ItemsDesignWidgetState extends State<ItemsDesignWidget> {
             Text(
               widget.model!.title!,
               style: const TextStyle(
-                  color: Colors.cyan, fontSize: 20, fontFamily: "Train"),
+                  color: Colors.pinkAccent, fontSize: 20, fontFamily: "Train"),
             ),
             Text(
               widget.model!.shortInfo!,

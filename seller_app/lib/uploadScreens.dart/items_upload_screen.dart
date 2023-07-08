@@ -37,7 +37,7 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.redAccent, Colors.pinkAccent],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],
@@ -64,7 +64,7 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
       body: Container(
         decoration: const BoxDecoration(
           gradient: LinearGradient(
-            colors: [Colors.cyan, Colors.amber],
+            colors: [Colors.pinkAccent, Colors.redAccent],
             begin: FractionalOffset(0.0, 0.0),
             end: FractionalOffset(1.0, 0.0),
             stops: [0.0, 1.0],
@@ -81,7 +81,8 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
               ),
               ElevatedButton(
                 style: ButtonStyle(
-                  backgroundColor: const MaterialStatePropertyAll(Colors.cyan),
+                  backgroundColor:
+                      MaterialStatePropertyAll(Colors.red.shade300),
                   shape: MaterialStatePropertyAll(
                     RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
@@ -164,7 +165,7 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
         flexibleSpace: Container(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
-              colors: [Colors.cyan, Colors.amber],
+              colors: [Colors.redAccent, Colors.pinkAccent],
               begin: FractionalOffset(0.0, 0.0),
               end: FractionalOffset(1.0, 0.0),
               stops: [0.0, 1.0],
@@ -193,7 +194,7 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
             child: const Text(
               "Add",
               style: TextStyle(
-                  color: Colors.cyan,
+                  color: Colors.white,
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                   fontFamily: "Varela",
@@ -224,34 +225,13 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
             ),
           ),
           const Divider(
-            color: Colors.amber,
-            thickness: 2,
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.perm_device_information,
-              color: Colors.cyan,
-            ),
-            title: Container(
-              width: 250,
-              child: TextField(
-                style: const TextStyle(color: Colors.black),
-                controller: shortInfoController,
-                decoration: const InputDecoration(
-                    hintText: "info",
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none),
-              ),
-            ),
-          ),
-          const Divider(
-            color: Colors.amber,
+            color: Colors.redAccent,
             thickness: 2,
           ),
           ListTile(
             leading: const Icon(
               Icons.title,
-              color: Colors.cyan,
+              color: Colors.redAccent,
             ),
             title: Container(
               width: 250,
@@ -266,13 +246,34 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
             ),
           ),
           const Divider(
-            color: Colors.amber,
+            color: Colors.redAccent,
+            thickness: 2,
+          ),
+          ListTile(
+            leading: const Icon(
+              Icons.perm_device_information,
+              color: Colors.redAccent,
+            ),
+            title: Container(
+              width: 250,
+              child: TextField(
+                style: const TextStyle(color: Colors.black),
+                controller: shortInfoController,
+                decoration: const InputDecoration(
+                    hintText: "info",
+                    hintStyle: TextStyle(color: Colors.grey),
+                    border: InputBorder.none),
+              ),
+            ),
+          ),
+          const Divider(
+            color: Colors.redAccent,
             thickness: 2,
           ),
           ListTile(
             leading: const Icon(
               Icons.description,
-              color: Colors.cyan,
+              color: Colors.redAccent,
             ),
             title: Container(
               width: 250,
@@ -287,13 +288,13 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
             ),
           ),
           const Divider(
-            color: Colors.amber,
+            color: Colors.redAccent,
             thickness: 2,
           ),
           ListTile(
             leading: const Icon(
               Icons.currency_rupee_sharp,
-              color: Colors.cyan,
+              color: Colors.redAccent,
             ),
             title: Container(
               width: 250,
@@ -309,7 +310,7 @@ class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
             ),
           ),
           const Divider(
-            color: Colors.amber,
+            color: Colors.redAccent,
             thickness: 2,
           ),
         ],
