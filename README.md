@@ -1,7 +1,11 @@
 # Complete Food Delivery App
 
+
+
+
 <p align="center">
- <img src='https://github.com/helloharendra/Complete-Food-Delivery-App-Flutter/assets/78723011/d7d3ca6e-22a1-45d8-9170-e8c0def8e986' height="200" width="400"  />
+ <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/flutter/flutter-original.svg" height="100" width="100"/>
+
 </p>
  </br>
  A Complete Food Delivery Flutter App with Admin web portal. basically it contains (rider app,seller app and user app with super admin web portal) .
