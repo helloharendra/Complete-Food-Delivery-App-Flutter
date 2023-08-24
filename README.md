@@ -1,11 +1,6 @@
 # Complete Food Delivery App
-<img src='https://github.com/IPH-Technologies-Pvt-Ltd/Firebase-authentication-and-authorization-react-js/assets/133772183/0f0dce61-91ce-4c6b-b33d-9bb4fe9b41bf '
-  width="800" 
-     height="300"
-  />
 
-
-<img src='https://github.com/helloharendra/Complete-Food-Delivery-App-Flutter/assets/78723011/d7d3ca6e-22a1-45d8-9170-e8c0def8e986' height="400" width="400" />
+<img src='https://github.com/helloharendra/Complete-Food-Delivery-App-Flutter/assets/78723011/d7d3ca6e-22a1-45d8-9170-e8c0def8e986' height="400" width="400"  align='centre'/>
  </br>
  A Complete Food Delivery Flutter App with Admin web portal. basically it contains (rider app,seller app and user app with super admin web portal) .
 
