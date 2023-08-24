@@ -1,5 +1,5 @@
 # Complete Food Delivery App
- <img src=""  height="500" width="500" align="center" >
+ <img src=""  height:500  >
  </br>
  A Complete Food Delivery Flutter App with Admin web portal. basically it contains (rider app,seller app and user app with super admin web portal) .
 
