@@ -116,7 +116,7 @@ This project is licensed under the [MIT License](LICENSE).
 For any inquiries or support, please contact [email protected]
 
 Feel free to update the content as per your specific app's details.
-## Screenrecording of App
+## Screen recording of App
 
 https://github.com/helloharendra/Complete-Food-Delivery-App-Flutter/assets/126752734/27bd5c10-67f3-4893-bb13-9db3f18bd333
 
@@ -127,3 +127,4 @@ https://github.com/helloharendra/Complete-Food-Delivery-App-Flutter/assets/78723
 
 
 ## Apps
+![seller App (1) (1)](https://github.com/helloharendra/Complete-Food-Delivery-App-Flutter/assets/78723011/fb65ecce-9fbc-49bd-a619-77aaafaa2b50)
