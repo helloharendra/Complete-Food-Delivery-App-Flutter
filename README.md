@@ -1,5 +1,6 @@
 # Complete Food Delivery App
-![seller App (1) (1)](https://github.com/helloharendra/Complete-Food-Delivery-App-Flutter/assets/78723011/fb65ecce-9fbc-49bd-a619-77aaafaa2b50)
+ <img src="![seller App (1) (1)](https://github.com/helloharendra/Complete-Food-Delivery-App-Flutter/assets/78723011/fb65ecce-9fbc-49bd-a619-77aaafaa2b50) " height="400" width="500">
+ </br>
  A Complete Food Delivery Flutter App with Admin web portal. basically it contains (rider app,seller app and user app with super admin web portal) .
 
  # I-Eat-Delivery-App-Flutter
