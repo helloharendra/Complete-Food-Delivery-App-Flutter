@@ -14,69 +14,38 @@ class MySplashScreen extends StatefulWidget {
 }
 
 class _MySplashScreenState extends State<MySplashScreen> {
-  startTimer() {
-    Timer(const Duration(seconds: 2), () async {
-      if (firebaseAuth.currentUser != null) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
-      } else {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const AuthScreen()));
-      }
+  @override
+  void initState() {
+    super.initState();
+    Timer(const Duration(milliseconds: 900), () {
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (_) => firebaseAuth.currentUser != null ? const HomeScreen() : const AuthScreen(),
+        ),
+      );
     });
   }
 
   @override
-  void initState() {
-    super.initState();
-    startTimer();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Material(
-        child: Container(
-      color: Colors.white,
-      child: Center(
+    return const Scaffold(
+      body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Image.asset('assets/images/logo.png'),
+            CircleAvatar(
+              radius: 44,
+              backgroundColor: Color(0xFFE8F5EC),
+              child: Icon(Icons.delivery_dining_rounded, size: 48, color: Color(0xFF166534)),
             ),
-            const SizedBox(
-              height: 10,
-            ),
-            Padding(
-              padding: EdgeInsets.all(8.0),
-              child: 
-              Column(
-                children: const [
-                  Text(
-                    'Riders Food App',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 48,
-                        fontFamily: "Signatra",
-                        letterSpacing: 3),
-                  ),
-                  Text(
-                    "World's Largest & No.1 Food Delivery App",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 24,
-                        fontFamily: "Signatra",
-                        letterSpacing: 3),
-                  ),
-                ],
-              ),
-            )
+            SizedBox(height: 18),
+            Text('ديرب للمندوبين', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900)),
+            SizedBox(height: 6),
+            Text('استلم الطلبات ووصّلها بسهولة', style: TextStyle(color: Colors.grey)),
           ],
         ),
       ),
-    ));
+    );
   }
 }

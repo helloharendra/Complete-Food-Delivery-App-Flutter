@@ -1,0 +1,45 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && (
+        request.auth.token.admin == true ||
+        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+      );
+    }
+    function imageUnder5Mb() {
+      return request.resource != null
+        && request.resource.size < 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/.*');
+    }
+
+    match /products/{ownerId}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == ownerId && imageUnder5Mb();
+      allow delete: if signedIn() && (request.auth.uid == ownerId || isAdmin());
+    }
+
+    match /stores/{ownerId}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == ownerId && imageUnder5Mb();
+      allow delete: if signedIn() && (request.auth.uid == ownerId || isAdmin());
+    }
+
+    match /profiles/{uid}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == uid && imageUnder5Mb();
+      allow delete: if signedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    match /community/{uid}/{fileName} {
+      allow read: if true;
+      allow create, update: if signedIn() && request.auth.uid == uid && imageUnder5Mb();
+      allow delete: if signedIn() && (request.auth.uid == uid || isAdmin());
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if isAdmin();
+    }
+  }
+}

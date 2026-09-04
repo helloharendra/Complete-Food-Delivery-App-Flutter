@@ -12,156 +12,256 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  String adminEmail = "";
-  String adminPassword = "";
+  final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
+  bool _loading = false;
+  bool _obscurePassword = true;
 
-  allowAdminToLogin() async {
-    SnackBar snackBar = const SnackBar(
-      content: Text(
-        "Loading..",
-        style: TextStyle(fontSize: 36, color: Colors.white),
-      ),
-      backgroundColor: Colors.pink,
-      duration: Duration(seconds: 3),
-    );
-    ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    User? currentAdmin;
-    await FirebaseAuth.instance
-        .signInWithEmailAndPassword(email: adminEmail, password: adminPassword)
-        .then((fAuth) {
-      currentAdmin = fAuth.user;
-    }).catchError((onError) {
-      //display error message
-      final snackBar = SnackBar(
-        content: Text(
-          "Error Occured: $onError",
-          style: const TextStyle(fontSize: 36, color: Colors.black),
-        ),
-        backgroundColor: Colors.pinkAccent,
-        duration: const Duration(seconds: 5),
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _login() async {
+    if (_loading || !_formKey.currentState!.validate()) return;
+
+    setState(() => _loading = true);
+
+    try {
+      final credential = await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
       );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    });
-    if (currentAdmin != null) {
-      // check if that admins record also exist in the admins collections in firestore database
-      await FirebaseFirestore.instance
-          .collection("admins")
-          .doc(currentAdmin!.uid)
-          .get()
-          .then((snap) {
-        if (snap.exists) {
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()));
-        } else {
-          SnackBar snackBar = const SnackBar(
-            content: Text(
-              "No record found",
-              style: TextStyle(fontSize: 36, color: Colors.black),
-            ),
-            backgroundColor: Colors.pinkAccent,
-            duration: Duration(seconds: 3),
-          );
-          ScaffoldMessenger.of(context).showSnackBar(snackBar);
-        }
-      });
+
+      final user = credential.user;
+      if (user == null) {
+        throw FirebaseAuthException(code: 'user-not-found');
+      }
+
+      final adminDoc = await FirebaseFirestore.instance
+          .collection('admins')
+          .doc(user.uid)
+          .get();
+
+      if (!adminDoc.exists) {
+        await FirebaseAuth.instance.signOut();
+        if (!mounted) return;
+        _showMessage('هذا الحساب غير مصرح له بالدخول إلى لوحة الإدارة.');
+        return;
+      }
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      );
+    } on FirebaseAuthException catch (error) {
+      if (!mounted) return;
+      _showMessage(_authMessage(error.code));
+    } catch (_) {
+      if (!mounted) return;
+      _showMessage('تعذر تسجيل الدخول الآن. حاول مرة أخرى.');
+    } finally {
+      if (mounted) setState(() => _loading = false);
     }
+  }
+
+  String _authMessage(String code) {
+    switch (code) {
+      case 'invalid-email':
+        return 'البريد الإلكتروني غير صحيح.';
+      case 'user-disabled':
+        return 'تم إيقاف هذا الحساب.';
+      case 'user-not-found':
+      case 'wrong-password':
+      case 'invalid-credential':
+        return 'البريد الإلكتروني أو كلمة المرور غير صحيحة.';
+      case 'too-many-requests':
+        return 'محاولات كثيرة. حاول مرة أخرى بعد قليل.';
+      default:
+        return 'تعذر تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.';
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message, textAlign: TextAlign.right)),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      body: Stack(
-        children: [
-          Center(
-            child: Container(
-              width: MediaQuery.of(context).size.width * .5,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Image.asset('assets/images/admin.PNG'),
-                  TextField(
-                    onChanged: (value) {
-                      adminEmail = value;
-                    },
-                    style: const TextStyle(fontSize: 16, color: Colors.white),
-                    decoration: const InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.cyan,
-                            width: 2,
+    const green = Color(0xFF0F7A43);
+    const darkGreen = Color(0xFF095A31);
+
+    return Directionality(
+      textDirection: TextDirection.rtl,
+      child: Scaffold(
+        backgroundColor: const Color(0xFFF5F7F2),
+        body: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(24),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 460),
+              child: Card(
+                elevation: 8,
+                shadowColor: Colors.black12,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(28),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 34,
+                    vertical: 38,
+                  ),
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          width: 82,
+                          height: 82,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFE2F2E8),
+                            borderRadius: BorderRadius.circular(24),
+                          ),
+                          child: const Center(
+                            child: Text(
+                              'د',
+                              style: TextStyle(
+                                color: green,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 46,
+                              ),
+                            ),
                           ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.pink,
-                            width: 2,
+                        const SizedBox(height: 20),
+                        const Text(
+                          'إدارة ديرب',
+                          style: TextStyle(
+                            color: darkGreen,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 30,
                           ),
                         ),
-                        hintText: "Email",
-                        hintStyle: TextStyle(color: Colors.white),
-                        icon: Icon(
-                          Icons.email,
-                          color: Colors.cyan,
-                        )),
-                  ),
-                  const SizedBox(
-                    height: 10,
-                  ),
-                  TextField(
-                    onChanged: (value) {
-                      adminPassword = value;
-                    },
-                    obscureText: true,
-                    style: const TextStyle(fontSize: 16, color: Colors.white),
-                    decoration: const InputDecoration(
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.cyan,
-                            width: 2,
+                        const SizedBox(height: 8),
+                        Text(
+                          'لوحة التحكم المركزية لمنصة ديرب',
+                          style: TextStyle(
+                            color: Colors.grey.shade600,
+                            fontSize: 15,
                           ),
                         ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: Colors.pink,
-                            width: 2,
+                        const SizedBox(height: 30),
+                        TextFormField(
+                          controller: _emailController,
+                          keyboardType: TextInputType.emailAddress,
+                          textDirection: TextDirection.ltr,
+                          autofillHints: const [AutofillHints.email],
+                          decoration: InputDecoration(
+                            labelText: 'البريد الإلكتروني',
+                            prefixIcon: const Icon(Icons.email_outlined),
+                            filled: true,
+                            fillColor: const Color(0xFFF8FAF7),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          validator: (value) {
+                            final email = value?.trim() ?? '';
+                            if (email.isEmpty || !email.contains('@')) {
+                              return 'اكتب بريدًا إلكترونيًا صحيحًا';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (_) => _login(),
+                        ),
+                        const SizedBox(height: 16),
+                        TextFormField(
+                          controller: _passwordController,
+                          obscureText: _obscurePassword,
+                          textDirection: TextDirection.ltr,
+                          autofillHints: const [AutofillHints.password],
+                          decoration: InputDecoration(
+                            labelText: 'كلمة المرور',
+                            prefixIcon: const Icon(Icons.lock_outline),
+                            suffixIcon: IconButton(
+                              onPressed: () => setState(
+                                () => _obscurePassword = !_obscurePassword,
+                              ),
+                              icon: Icon(
+                                _obscurePassword
+                                    ? Icons.visibility_outlined
+                                    : Icons.visibility_off_outlined,
+                              ),
+                            ),
+                            filled: true,
+                            fillColor: const Color(0xFFF8FAF7),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(16),
+                              borderSide: BorderSide.none,
+                            ),
+                          ),
+                          validator: (value) {
+                            if ((value ?? '').length < 6) {
+                              return 'كلمة المرور يجب ألا تقل عن 6 أحرف';
+                            }
+                            return null;
+                          },
+                          onFieldSubmitted: (_) => _login(),
+                        ),
+                        const SizedBox(height: 24),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 54,
+                          child: FilledButton(
+                            onPressed: _loading ? null : _login,
+                            style: FilledButton.styleFrom(
+                              backgroundColor: green,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: _loading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.5,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text(
+                                    'دخول لوحة الإدارة',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 17,
+                                    ),
+                                  ),
                           ),
                         ),
-                        hintText: "Password",
-                        hintStyle: TextStyle(color: Colors.white),
-                        icon: Icon(
-                          Icons.password,
-                          color: Colors.cyan,
-                        )),
-                  ),
-                  const SizedBox(
-                    height: 20,
-                  ),
-                  ElevatedButton(
-                    onPressed: () {
-                      allowAdminToLogin();
-                    },
-                    style: ButtonStyle(
-                      padding: MaterialStateProperty.all(
-                        const EdgeInsets.symmetric(
-                            horizontal: 100, vertical: 20),
-                      ),
-                      backgroundColor:
-                          MaterialStateProperty.all<Color>(Colors.pink),
-                      foregroundColor:
-                          MaterialStateProperty.all<Color>(Colors.cyanAccent),
+                        const SizedBox(height: 18),
+                        Text(
+                          'الدخول مسموح لحسابات الإدارة المعتمدة فقط',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: Colors.grey.shade500,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
-                          fontSize: 16, color: Colors.white, letterSpacing: 2),
-                    ),
                   ),
-                ],
+                ),
               ),
             ),
-          )
-        ],
+          ),
+        ),
       ),
     );
   }

@@ -1,94 +1,26 @@
 {
   "project_info": {
-    "project_number": "181239189384",
-    "project_id": "fooddeliveryapp-785a0",
-    "storage_bucket": "fooddeliveryapp-785a0.appspot.com"
+    "project_number": "365123606367",
+    "project_id": "dierb-29548",
+    "storage_bucket": "dierb-29548.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:181239189384:android:bc1a0e633814b75b7a343d",
+        "mobilesdk_app_id": "1:365123606367:android:82969f06df11aba2b8c8ea",
         "android_client_info": {
-          "package_name": "com.harendra_prajapati_iphtech.rider_app"
+          "package_name": "com.capbeltagy.dierb"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "181239189384-90jb67r6j6p6fjv1fttqpqf3hfm9eech.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCWVEJunIScMMTO_jvU8vA1MB5z5fYeqOw"
+          "current_key": "AIzaSyBVUGFEPhyNrFwkMjEuV4PGk7EEQS_CQ5I"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "181239189384-90jb67r6j6p6fjv1fttqpqf3hfm9eech.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:181239189384:android:d2101e23b1aabab97a343d",
-        "android_client_info": {
-          "package_name": "com.harendra_prajapati_iphtech.seller_app"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "181239189384-90jb67r6j6p6fjv1fttqpqf3hfm9eech.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCWVEJunIScMMTO_jvU8vA1MB5z5fYeqOw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "181239189384-90jb67r6j6p6fjv1fttqpqf3hfm9eech.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
-        "mobilesdk_app_id": "1:181239189384:android:7da00040c11be85c7a343d",
-        "android_client_info": {
-          "package_name": "com.harendra_prajapati_iphtech.user_app"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "181239189384-90jb67r6j6p6fjv1fttqpqf3hfm9eech.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyCWVEJunIScMMTO_jvU8vA1MB5z5fYeqOw"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "181239189384-90jb67r6j6p6fjv1fttqpqf3hfm9eech.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }

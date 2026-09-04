@@ -1,427 +1,311 @@
 // ignore_for_file: non_constant_identifier_names
 
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:seller_app/global/global.dart';
 import 'package:seller_app/mainScreens/home_screen.dart';
 import 'package:seller_app/model/menus.dart';
-import 'package:seller_app/widgets/error_Dialog.dart';
-import 'package:seller_app/widgets/progress_bar.dart';
-import 'package:firebase_storage/firebase_storage.dart' as storageRef;
 
 class ItemsUploadScreen extends StatefulWidget {
   final Menus? model;
-  ItemsUploadScreen({this.model});
+  const ItemsUploadScreen({super.key, this.model});
 
   @override
   State<ItemsUploadScreen> createState() => _ItemsUploadScreenState();
 }
 
 class _ItemsUploadScreenState extends State<ItemsUploadScreen> {
-  XFile? imageXFile;
-  final ImagePicker _picker = ImagePicker();
-  TextEditingController shortInfoController = TextEditingController();
-  TextEditingController titleController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
-  TextEditingController priceController = TextEditingController();
-  bool uploading = false;
+  static const String _uploadEndpoint = 'http://169.58.246.131:8091/upload';
 
+  final ImagePicker _picker = ImagePicker();
+  final TextEditingController shortInfoController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  final TextEditingController descriptionController = TextEditingController();
+  final TextEditingController priceController = TextEditingController();
+
+  XFile? imageXFile;
+  bool uploading = false;
   String uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
 
-  defaultScreen() {
-    return Scaffold(
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.redAccent, Colors.pinkAccent],
-              begin: FractionalOffset(0.0, 0.0),
-              end: FractionalOffset(1.0, 0.0),
-              stops: [0.0, 1.0],
-              tileMode: TileMode.clamp,
-            ),
-          ),
-        ),
-        title: const Text(
-          "Add New Items",
-          style: TextStyle(fontSize: 30, fontFamily: "Lobster"),
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: true,
-        leading: IconButton(
-            onPressed: () {
-              Navigator.push(context,
-                  MaterialPageRoute(builder: (context) => const HomeScreen()));
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: Colors.white,
-            )),
-      ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.pinkAccent, Colors.redAccent],
-            begin: FractionalOffset(0.0, 0.0),
-            end: FractionalOffset(1.0, 0.0),
-            stops: [0.0, 1.0],
-            tileMode: TileMode.clamp,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            children: [
-              const Icon(
-                Icons.shop_two,
-                color: Colors.white,
-                size: 200,
-              ),
-              ElevatedButton(
-                style: ButtonStyle(
-                  backgroundColor:
-                      MaterialStatePropertyAll(Colors.red.shade300),
-                  shape: MaterialStatePropertyAll(
-                    RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                  ),
-                ),
-                onPressed: () {
-                  tekeImage(context);
-                },
-                child: const Text(
-                  'Add New Items',
-                  style: TextStyle(color: Colors.white, fontSize: 18),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
+  Future<void> _pickImage(ImageSource source) async {
+    final picked = await _picker.pickImage(
+      source: source,
+      maxHeight: 1080,
+      maxWidth: 1920,
+      imageQuality: 88,
     );
-  }
-
-  tekeImage(mContext) {
-    return showDialog(
-        context: mContext,
-        builder: (context) {
-          return SimpleDialog(
-            title: const Text(
-              "Menu Image",
-              style:
-                  TextStyle(color: Colors.amber, fontWeight: FontWeight.bold),
-            ),
-            children: [
-              SimpleDialogOption(
-                onPressed: captureImageWithCamera,
-                child: const Text(
-                  "Capture with Phone Camera",
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-              SimpleDialogOption(
-                onPressed: pickImageFromGalary,
-                child: const Text(
-                  "Select from Galary",
-                  style: TextStyle(color: Colors.grey),
-                ),
-              ),
-              SimpleDialogOption(
-                child: const Text(
-                  "Cancel",
-                  style: TextStyle(color: Colors.red),
-                ),
-                onPressed: () => Navigator.pop(context),
-              ),
-            ],
-          );
-        });
-  }
-
-  captureImageWithCamera() async {
-    Navigator.pop(context);
-    imageXFile = await _picker.pickImage(
-        source: ImageSource.camera, maxHeight: 720, maxWidth: 1280);
-    setState(() {
-      imageXFile;
-    });
-  }
-
-  pickImageFromGalary() async {
-    Navigator.pop(context);
-    imageXFile = await _picker.pickImage(
-        source: ImageSource.gallery, maxHeight: 720, maxWidth: 1280);
-    setState(() {
-      imageXFile;
-    });
-  }
-
-  ItemsUploadFormScreen() {
-    return Scaffold(
-      appBar: AppBar(
-        flexibleSpace: Container(
-          decoration: const BoxDecoration(
-            gradient: LinearGradient(
-              colors: [Colors.redAccent, Colors.pinkAccent],
-              begin: FractionalOffset(0.0, 0.0),
-              end: FractionalOffset(1.0, 0.0),
-              stops: [0.0, 1.0],
-              tileMode: TileMode.clamp,
-            ),
-          ),
-        ),
-        title: const Text(
-          "Uploading New Item",
-          style: TextStyle(fontSize: 20, fontFamily: "Lobster"),
-        ),
-        centerTitle: true,
-        automaticallyImplyLeading: true,
-        leading: IconButton(
-          onPressed: () {
-            clearMenuUploaddForm();
-          },
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Colors.white,
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: uploading ? null : () => validateUploadForm(),
-            child: const Text(
-              "Add",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                  fontFamily: "Varela",
-                  letterSpacing: 3),
-            ),
-          ),
-        ],
-      ),
-      body: ListView(
-        children: [
-          uploading == true ? linearProgress() : Text(""),
-          Container(
-            height: 230,
-            width: MediaQuery.of(context).size.width * 0.8,
-            child: Center(
-              child: AspectRatio(
-                aspectRatio: 16 / 9,
-                child: Container(
-                  decoration: BoxDecoration(
-                    image: DecorationImage(
-                        image: FileImage(
-                          File(imageXFile!.path),
-                        ),
-                        fit: BoxFit.cover),
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const Divider(
-            color: Colors.redAccent,
-            thickness: 2,
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.title,
-              color: Colors.redAccent,
-            ),
-            title: Container(
-              width: 250,
-              child: TextField(
-                style: const TextStyle(color: Colors.black),
-                controller: titleController,
-                decoration: const InputDecoration(
-                    hintText: "title",
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none),
-              ),
-            ),
-          ),
-          const Divider(
-            color: Colors.redAccent,
-            thickness: 2,
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.perm_device_information,
-              color: Colors.redAccent,
-            ),
-            title: Container(
-              width: 250,
-              child: TextField(
-                style: const TextStyle(color: Colors.black),
-                controller: shortInfoController,
-                decoration: const InputDecoration(
-                    hintText: "info",
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none),
-              ),
-            ),
-          ),
-          const Divider(
-            color: Colors.redAccent,
-            thickness: 2,
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.description,
-              color: Colors.redAccent,
-            ),
-            title: Container(
-              width: 250,
-              child: TextField(
-                style: const TextStyle(color: Colors.black),
-                controller: descriptionController,
-                decoration: const InputDecoration(
-                    hintText: "Description",
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none),
-              ),
-            ),
-          ),
-          const Divider(
-            color: Colors.redAccent,
-            thickness: 2,
-          ),
-          ListTile(
-            leading: const Icon(
-              Icons.currency_rupee_sharp,
-              color: Colors.redAccent,
-            ),
-            title: Container(
-              width: 250,
-              child: TextField(
-                keyboardType: TextInputType.number,
-                style: const TextStyle(color: Colors.black),
-                controller: priceController,
-                decoration: const InputDecoration(
-                    hintText: "Price",
-                    hintStyle: TextStyle(color: Colors.grey),
-                    border: InputBorder.none),
-              ),
-            ),
-          ),
-          const Divider(
-            color: Colors.redAccent,
-            thickness: 2,
-          ),
-        ],
-      ),
-    );
-  }
-
-  clearMenuUploaddForm() {
-    setState(() {
-      shortInfoController.clear();
-      titleController.clear();
-      priceController.clear();
-      descriptionController.clear();
-      imageXFile = null;
-    });
-  }
-
-  validateUploadForm() async {
-    if (imageXFile != null) {
-      if (shortInfoController.text.isNotEmpty &&
-          titleController.text.isNotEmpty &&
-          descriptionController.text.isNotEmpty &&
-          priceController.text.isNotEmpty) {
-        setState(() {
-          uploading = true;
-        });
-        // start uploading the image
-        String downloadUrl = await uploadImage(File(imageXFile!.path));
-        //save info to firestore
-        saveInfo(downloadUrl);
-      } else {
-        showDialog(
-            context: context,
-            builder: (context) {
-              return const ErrorDialog(
-                message: "Please write title and info for item",
-              );
-            });
-      }
-    } else {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return const ErrorDialog(
-              message: "Please Pick an image for item",
-            );
-          });
+    if (picked != null && mounted) {
+      setState(() => imageXFile = picked);
     }
   }
 
-  saveInfo(String downloadUrl) {
-    final ref = FirebaseFirestore.instance
-        .collection("sellers")
-        .doc(sharedPreferences!.getString("uid"))
-        .collection("menus")
-        .doc(widget.model!.menuId)
-        .collection("items");
-
-    ref.doc(uniqueIdName).set({
-      "itemId": uniqueIdName,
-      "menuId": widget.model!.menuId,
-      "sellerUID": sharedPreferences!.getString("uid"),
-      "sellerName": sharedPreferences!.getString("name"),
-      "shortInfo": shortInfoController.text.toString(),
-      "longDescription": descriptionController.text.toString(),
-      "price": int.parse(priceController.text),
-      "title": titleController.text.toString(),
-      "publishedDate": DateTime.now(),
-      "status": "available",
-      "thumbnailUrl": downloadUrl,
-    }).then(
-      (value) {
-        final itemsRef = FirebaseFirestore.instance.collection("items");
-
-        itemsRef.doc(uniqueIdName).set({
-          "itemId": uniqueIdName,
-          "menuId": widget.model!.menuId,
-          "sellerUID": sharedPreferences!.getString("uid"),
-          "sellerName": sharedPreferences!.getString("name"),
-          "shortInfo": shortInfoController.text.toString(),
-          "longDescription": descriptionController.text.toString(),
-          "price": int.parse(priceController.text),
-          "title": titleController.text.toString(),
-          "publishedDate": DateTime.now(),
-          "status": "available",
-          "thumbnailUrl": downloadUrl,
-        });
-      },
-    ).then((value) {
-      clearMenuUploaddForm();
-      setState(() {
-        uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
-        uploading = false;
-      });
-    });
+  void _showImagePicker() {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: const Text('اختيار صورة من المعرض'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.gallery);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt_outlined),
+              title: const Text('التقاط صورة بالكاميرا'),
+              onTap: () {
+                Navigator.pop(context);
+                _pickImage(ImageSource.camera);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
-  uploadImage(mImageFile) async {
-    storageRef.Reference reference =
-        storageRef.FirebaseStorage.instance.ref().child("items");
+  Future<String> _uploadImageToVps(File imageFile) async {
+    final request = http.MultipartRequest('POST', Uri.parse(_uploadEndpoint));
+    request.files.add(
+      await http.MultipartFile.fromPath(
+        'file',
+        imageFile.path,
+        filename: '$uniqueIdName.jpg',
+      ),
+    );
 
-    storageRef.UploadTask uploadTask =
-        reference.child("$uniqueIdName.jpg").putFile(mImageFile);
-    storageRef.TaskSnapshot taskSnapshot = await uploadTask.whenComplete(() {});
-    String downloadUrl = await taskSnapshot.ref.getDownloadURL();
+    final streamed = await request.send().timeout(const Duration(seconds: 45));
+    final response = await http.Response.fromStream(streamed);
 
-    return downloadUrl;
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('VPS upload failed (${response.statusCode})');
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map || decoded['success'] != true || decoded['url'] == null) {
+      throw Exception('Invalid VPS upload response');
+    }
+
+    return decoded['url'].toString();
+  }
+
+  Future<void> validateUploadForm() async {
+    if (uploading) return;
+
+    if (imageXFile == null) {
+      _showMessage('اختار صورة المنتج الأول');
+      return;
+    }
+    if (titleController.text.trim().isEmpty ||
+        shortInfoController.text.trim().isEmpty ||
+        descriptionController.text.trim().isEmpty ||
+        priceController.text.trim().isEmpty) {
+      _showMessage('كمّل بيانات المنتج المطلوبة');
+      return;
+    }
+
+    final price = num.tryParse(priceController.text.trim());
+    if (price == null || price <= 0) {
+      _showMessage('اكتب سعر صحيح');
+      return;
+    }
+
+    final uid = sharedPreferences?.getString('uid');
+    if (uid == null || uid.isEmpty) {
+      _showMessage('سجّل الدخول مرة أخرى');
+      return;
+    }
+    if (widget.model?.menuId == null || widget.model!.menuId!.isEmpty) {
+      _showMessage('اختار قسم المنتج مرة أخرى');
+      return;
+    }
+
+    setState(() => uploading = true);
+
+    try {
+      final downloadUrl = await _uploadImageToVps(File(imageXFile!.path));
+      await _saveInfo(downloadUrl, price);
+      if (!mounted) return;
+      _clearForm();
+      _showMessage('تم إضافة المنتج ورفع الصورة على السيرفر');
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const HomeScreen()),
+        (route) => false,
+      );
+    } catch (e) {
+      if (mounted) {
+        _showMessage('فشل رفع المنتج: $e');
+      }
+    } finally {
+      if (mounted) setState(() => uploading = false);
+    }
+  }
+
+  Future<void> _saveInfo(String downloadUrl, num price) async {
+    final uid = sharedPreferences!.getString('uid')!;
+    final sellerName = sharedPreferences!.getString('name') ?? '';
+    final menuId = widget.model!.menuId!;
+
+    final data = <String, dynamic>{
+      'itemId': uniqueIdName,
+      'menuId': menuId,
+      'sellerUID': uid,
+      'sellerName': sellerName,
+      'shortInfo': shortInfoController.text.trim(),
+      'longDescription': descriptionController.text.trim(),
+      'price': price,
+      'title': titleController.text.trim(),
+      'publishedDate': FieldValue.serverTimestamp(),
+      'status': 'available',
+      'thumbnailUrl': downloadUrl,
+      'imageUrl': downloadUrl,
+    };
+
+    final db = FirebaseFirestore.instance;
+    final batch = db.batch();
+
+    final sellerItem = db
+        .collection('sellers')
+        .doc(uid)
+        .collection('menus')
+        .doc(menuId)
+        .collection('items')
+        .doc(uniqueIdName);
+    final publicItem = db.collection('items').doc(uniqueIdName);
+
+    batch.set(sellerItem, data);
+    batch.set(publicItem, data);
+    await batch.commit();
+  }
+
+  void _clearForm() {
+    shortInfoController.clear();
+    titleController.clear();
+    priceController.clear();
+    descriptionController.clear();
+    imageXFile = null;
+    uniqueIdName = DateTime.now().millisecondsSinceEpoch.toString();
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  void dispose() {
+    shortInfoController.dispose();
+    titleController.dispose();
+    descriptionController.dispose();
+    priceController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return imageXFile == null ? defaultScreen() : ItemsUploadFormScreen();
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('إضافة منتج'),
+        centerTitle: true,
+      ),
+      body: Directionality(
+        textDirection: TextDirection.rtl,
+        child: AbsorbPointer(
+          absorbing: uploading,
+          child: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              InkWell(
+                onTap: _showImagePicker,
+                borderRadius: BorderRadius.circular(18),
+                child: Container(
+                  height: 220,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18),
+                    color: Colors.grey.shade100,
+                    border: Border.all(color: Colors.grey.shade300),
+                    image: imageXFile == null
+                        ? null
+                        : DecorationImage(
+                            image: FileImage(File(imageXFile!.path)),
+                            fit: BoxFit.cover,
+                          ),
+                  ),
+                  child: imageXFile == null
+                      ? const Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.add_photo_alternate_outlined, size: 54),
+                            SizedBox(height: 10),
+                            Text('اضغط لاختيار صورة المنتج'),
+                          ],
+                        )
+                      : null,
+                ),
+              ),
+              const SizedBox(height: 18),
+              TextField(
+                controller: titleController,
+                decoration: const InputDecoration(
+                  labelText: 'اسم المنتج',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: shortInfoController,
+                decoration: const InputDecoration(
+                  labelText: 'وصف مختصر',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: descriptionController,
+                maxLines: 3,
+                decoration: const InputDecoration(
+                  labelText: 'تفاصيل المنتج',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: priceController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'السعر بالجنيه',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 18),
+              SizedBox(
+                height: 52,
+                child: FilledButton.icon(
+                  onPressed: uploading ? null : validateUploadForm,
+                  icon: uploading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.cloud_upload_outlined),
+                  label: Text(uploading ? 'جاري الرفع...' : 'رفع الصورة وإضافة المنتج'),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

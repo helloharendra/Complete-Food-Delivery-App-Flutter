@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
 import 'package:flutter/material.dart';
 import 'package:rider_app/global/global.dart';
 import 'package:rider_app/mainScreens/parcel_picking_screen.dart';
@@ -27,7 +28,7 @@ class ShipmentAddressDesign extends StatelessWidget {
     FirebaseFirestore.instance.collection('orders').doc(getOrderId).update({
       "riderUID": sharedPreferences!.getString("uid"),
       "riderName": sharedPreferences!.getString("name"),
-      "status": "picking",
+      "status": OrderStatusCodec.toStorage(OrderStatus.pickedUpByRider),
       "lat": position!.latitude,
       "lng": position!.longitude,
       "address": completeAddress,
@@ -100,7 +101,7 @@ class ShipmentAddressDesign extends StatelessWidget {
             textAlign: TextAlign.justify,
           ),
         ),
-        orderStatus == "ended"
+        OrderStatusCodec.fromStorage(orderStatus).isTerminal
             ? Container()
             : Padding(
                 padding: const EdgeInsets.all(10.0),

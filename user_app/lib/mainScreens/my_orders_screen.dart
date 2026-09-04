@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
 import 'package:flutter/material.dart';
 import 'package:user_app/assistant_methods/assistant_methods.dart';
 import 'package:user_app/global/global.dart';
@@ -26,7 +27,17 @@ class _MyOrdersScreenState extends State<MyOrdersScreen> {
               .collection("users")
               .doc(sharedPreferences?.getString("uid"))
               .collection("orders")
-              .where("status", isEqualTo: "normal")
+              .where("status", whereIn: <String>[
+                'normal',
+                'received',
+                'acceptedByMerchant',
+                OrderStatus.waitingMerchantApproval.name,
+                OrderStatus.acceptedByMerchant.name,
+                OrderStatus.preparing.name,
+                OrderStatus.readyForPickup.name,
+                OrderStatus.pickedUpByRider.name,
+                OrderStatus.onTheWay.name,
+              ])
               .orderBy("orderTime", descending: true)
               .snapshots(),
           builder: (c, snapshot) {

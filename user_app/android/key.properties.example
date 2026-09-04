@@ -1,0 +1,5 @@
+# Copy to key.properties locally. Never commit the real file or keystore.
+storePassword=CHANGE_ME
+keyPassword=CHANGE_ME
+keyAlias=dierb
+storeFile=/absolute/path/to/dierb-upload-key.jks

@@ -31,8 +31,10 @@ class SaveAddressScreen extends StatelessWidget {
 
     position = newPosition;
 
-    placemarks =
-        await placemarkFromCoordinates(position!.latitude, position!.longitude);
+    placemarks = await Geocoding().placemarkFromCoordinates(
+      position!.latitude,
+      position!.longitude,
+    );
 
     Placemark pMarks = placemarks![0];
     completeAddress =

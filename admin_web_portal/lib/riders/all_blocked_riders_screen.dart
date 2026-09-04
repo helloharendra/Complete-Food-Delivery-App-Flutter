@@ -139,7 +139,7 @@ class _AllBlockedRidersScreenState extends State<AllBlockedRidersScreen> {
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(primary: Colors.green),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
                       icon: const Icon(
                         Icons.person_pin_sharp,
                         color: Colors.white,

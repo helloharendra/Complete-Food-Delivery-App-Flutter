@@ -1,78 +1,56 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:seller_app/global/global.dart';
-import 'package:seller_app/widgets/progress_bar.dart';
-import 'package:seller_app/widgets/simple_Appbar.dart';
-
-import '../assistant_methods/assistant_methods.dart';
-import '../widgets/order_card.dart';
-
-class HistoryScreen extends StatefulWidget {
+class HistoryScreen extends StatelessWidget {
   const HistoryScreen({super.key});
 
-  @override
-  State<HistoryScreen> createState() => _HistoryScreenState();
-}
+  String get uid => FirebaseAuth.instance.currentUser?.uid ?? '';
 
-class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        appBar: SimpleAppBar(
-          title: "History",
-        ),
-        body: StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection("orders")
-              .where("sellerUID",
-                  isEqualTo: sharedPreferences!.getString("uid"))
-              .where("status", isEqualTo: "ended")
-              .orderBy("orderTime", descending: true)
-              .snapshots(),
-          builder: (c, snapshot) {
-            return snapshot.hasData
-                ? ListView.builder(
-                    itemCount: snapshot.data?.docs.length,
-                    itemBuilder: (c, index) {
-                      return FutureBuilder<QuerySnapshot>(
-                        future: FirebaseFirestore.instance
-                            .collection("items")
-                            .where("itemId",
-                                whereIn: separateOrderItemIds(
-                                    (snapshot.data?.docs[index].data()
-                                        as Map<String, dynamic>)["productIds"]))
-                            .where("sellerUID",
-                                whereIn: (snapshot.data?.docs[index].data()
-                                    as Map<String, dynamic>)["uid"])
-                            .orderBy("publishedDate", descending: true)
-                            .get(),
-                        builder: (c, snap) {
-                          return snap.hasData
-                              ? OrderCard(
-                                  itemCount: snap.data?.docs.length,
-                                  data: snap.data?.docs,
-                                  orderId: snapshot.data?.docs[index].id,
-                                  seperateQuantitiesList:
-                                      separateOrderItemQuantities(
-                                          (snapshot.data?.docs[index].data()
-                                                  as Map<String, dynamic>)[
-                                              "productIds"]),
-                                )
-                              : Center(
-                                  child: circularProgress(),
-                                );
-                        },
-                      );
-                    },
-                  )
-                : Center(
-                    child: circularProgress(),
-                  );
-          },
-        ),
-      ),
+    return Scaffold(
+      appBar: AppBar(title: const Text('سجل المبيعات', style: TextStyle(fontWeight: FontWeight.w900))),
+      body: uid.isEmpty
+          ? const Center(child: Text('سجّل الدخول أولاً'))
+          : StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: FirebaseFirestore.instance.collection('orders').where('sellerUID', isEqualTo: uid).snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.hasError) return const Center(child: Text('تعذر تحميل سجل المبيعات'));
+                if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
+                final docs = snapshot.data!.docs.where((doc) {
+                  final status = OrderStatusCodec.fromStorage(doc.data()['status']);
+                  return status == OrderStatus.delivered || status == OrderStatus.cancelled || status == OrderStatus.rejected;
+                }).toList()
+                  ..sort((a, b) {
+                    final at = a.data()['createdAt'];
+                    final bt = b.data()['createdAt'];
+                    final av = at is Timestamp ? at.millisecondsSinceEpoch : 0;
+                    final bv = bt is Timestamp ? bt.millisecondsSinceEpoch : 0;
+                    return bv.compareTo(av);
+                  });
+                if (docs.isEmpty) return const Center(child: Text('لا توجد طلبات منتهية حتى الآن'));
+                return ListView.separated(
+                  padding: const EdgeInsets.all(14),
+                  itemCount: docs.length,
+                  separatorBuilder: (_, __) => const SizedBox(height: 8),
+                  itemBuilder: (_, index) {
+                    final data = docs[index].data();
+                    final status = OrderStatusCodec.fromStorage(data['status']);
+                    final total = (data['total'] as num?)?.toDouble() ?? 0;
+                    return Card(
+                      child: ListTile(
+                        leading: Icon(status == OrderStatus.delivered ? Icons.check_circle_rounded : Icons.cancel_outlined, color: status == OrderStatus.delivered ? Colors.green : Colors.orange),
+                        title: Text(data['customerName']?.toString() ?? 'طلب ديرب', style: const TextStyle(fontWeight: FontWeight.w800)),
+                        subtitle: Text(status.labelAr),
+                        trailing: Text('${total.toStringAsFixed(0)} ج.م', style: const TextStyle(fontWeight: FontWeight.w900)),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
     );
   }
 }

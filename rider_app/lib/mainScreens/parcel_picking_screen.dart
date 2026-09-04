@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
 import 'package:flutter/material.dart';
 import 'package:rider_app/assistant_methods/get_current_location.dart';
 import 'package:rider_app/global/global.dart';
@@ -49,7 +50,7 @@ class _ParcelPickingScreenState extends State<ParcelPickingScreen> {
   confirmParcelHasBeenPicked(getOrederId, sellerId, purchaserId,
       purchaserAddress, purchaserLat, purchaserLng) {
     FirebaseFirestore.instance.collection("orders").doc(getOrederId).update({
-      "status": "delivering",
+      "status": OrderStatusCodec.toStorage(OrderStatus.onTheWay),
       "address": completeAddress,
       "lat": position!.latitude,
       "lng": position!.longitude,

@@ -1,12 +1,10 @@
-import 'dart:io';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:image_picker/image_picker.dart';
 
-import 'package:firebase_storage/firebase_storage.dart' as fStorage;
 import 'package:rider_app/widgets/custom_text_field.dart';
 import 'package:rider_app/widgets/error_Dialog.dart';
 import 'package:rider_app/widgets/loading_dialog.dart';
@@ -32,9 +30,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   TextEditingController locationController = TextEditingController();
   TextEditingController emailController = TextEditingController();
 
-  XFile? imageXFile;
-  final ImagePicker _picker = ImagePicker();
-
   Position? position;
   List<Placemark>? placeMarks;
 
@@ -42,15 +37,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   String completeAddress = "";
 
-  Future<void> _getImage() async {
-    imageXFile = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      imageXFile;
-    });
-  }
-
   getCurrentLocation() async {
     LocationPermission permission = await Geolocator.requestPermission();
+    if (permission == LocationPermission.denied || permission == LocationPermission.deniedForever) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اكتب عنوانك يدويًا أو اسمح بالوصول للموقع من إعدادات الهاتف')));
+      }
+      return;
+    }
     Position newPosition = await Geolocator.getCurrentPosition(
       desiredAccuracy: LocationAccuracy.high,
     );
@@ -66,13 +60,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future<void> formValidation() async {
-    if (imageXFile == null) {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return const ErrorDialog(message: "Please select an image");
-          });
-    } else {
       if (passwordController.text == confirmePasswordController.text) {
         if (confirmePasswordController.text.isNotEmpty &&
             nameController.text.isNotEmpty &&
@@ -84,39 +71,29 @@ class _RegisterScreenState extends State<RegisterScreen> {
               context: context,
               builder: (context) {
                 return const LoadingDialog(
-                  message: "Registering Account...",
+                  message: "جاري إنشاء حساب المندوب...",
                 );
               });
-          String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-          fStorage.Reference reference = fStorage.FirebaseStorage.instance
-              .ref()
-              .child('riders')
-              .child(fileName);
-          fStorage.UploadTask uploadTask =
-              reference.putFile(File(imageXFile!.path));
-
-          fStorage.TaskSnapshot taskSnapshot =
-              await uploadTask.whenComplete(() {});
-          await taskSnapshot.ref.getDownloadURL().then((url) {
-            sellerImageUrl = url;
-            authenticateSellerAndSignUp();
-          });
+          // Rider registration must not depend on Firebase Storage. A profile
+          // image can be added later when the shared HTTPS upload service is
+          // available; the operational account remains usable without one.
+          sellerImageUrl = '';
+          authenticateSellerAndSignUp();
         } else {
           showDialog(
               context: context,
               builder: (context) {
                 return const ErrorDialog(
-                    message: "Please Enter Required info for registration");
+                    message: "أكمل بيانات التسجيل المطلوبة");
               });
         }
       } else {
         showDialog(
             context: context,
             builder: (context) {
-              return const ErrorDialog(message: "Password don't match");
+              return const ErrorDialog(message: "كلمتا المرور غير متطابقتين");
             });
       }
-    }
   }
 
   void authenticateSellerAndSignUp() async {
@@ -150,16 +127,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
   }
 
   Future saveDataToFireStore(User currentUser) async {
-    FirebaseFirestore.instance.collection('riders').doc(currentUser.uid).set({
+    await FirebaseFirestore.instance.collection('riders').doc(currentUser.uid).set({
       "riderUID": currentUser.uid,
       "riderEmail": currentUser.email,
       "riderName": nameController.text.trim(),
       "riderAvtar": sellerImageUrl,
       "phone": phoneController.text.trim(),
-      "address": completeAddress,
-      "status": "Approved",
-      "lat": position!.latitude,
-      "lng": position!.longitude,
+      "address": locationController.text.trim(),
+      "status": MerchantStatus.pending.name,
+      "cityId": LaunchLocationDefaults.cityId,
+      "available": false,
+      "serviceZoneIds": <String>[],
+      "lat": position?.latitude ?? 0,
+      "lng": position?.longitude ?? 0,
+      "createdAt": FieldValue.serverTimestamp(),
+      "updatedAt": FieldValue.serverTimestamp(),
     });
 
     // save data locally
@@ -180,25 +162,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             const SizedBox(
               height: 10,
             ),
-            InkWell(
-              onTap: () {
-                _getImage();
-              },
-              child: CircleAvatar(
-                  radius: MediaQuery.of(context).size.width * 0.20,
-                  backgroundColor: Colors.white,
-                  backgroundImage: imageXFile == null
-                      ? null
-                      : FileImage(
-                          File(imageXFile!.path),
-                        ),
-                  child: imageXFile == null
-                      ? Icon(
-                          Icons.add_photo_alternate,
-                          size: MediaQuery.of(context).size.width * 0.20,
-                          color: Colors.grey,
-                        )
-                      : null),
+            const CircleAvatar(
+              radius: 52,
+              backgroundColor: Color(0xFFE8F5EC),
+              child: Icon(Icons.delivery_dining_rounded, size: 54, color: Color(0xFF166534)),
             ),
             const SizedBox(
               height: 10,
@@ -210,37 +177,37 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   CustomTextField(
                     data: Icons.person,
                     controller: nameController,
-                    hintText: 'Name',
+                    hintText: 'الاسم',
                     isObsecre: false,
                   ),
                   CustomTextField(
                     data: Icons.email,
                     controller: emailController,
-                    hintText: 'Email',
+                    hintText: 'البريد الإلكتروني',
                     isObsecre: false,
                   ),
                   CustomTextField(
                     data: Icons.lock,
                     controller: passwordController,
-                    hintText: 'Password',
+                    hintText: 'كلمة المرور',
                     isObsecre: true,
                   ),
                   CustomTextField(
                     data: Icons.lock,
                     controller: confirmePasswordController,
-                    hintText: 'Confirm Password',
+                    hintText: 'تأكيد كلمة المرور',
                     isObsecre: true,
                   ),
                   CustomTextField(
                     data: Icons.phone,
                     controller: phoneController,
-                    hintText: 'Phone',
+                    hintText: 'رقم الهاتف',
                     isObsecre: false,
                   ),
                   CustomTextField(
                     data: Icons.my_location,
                     controller: locationController,
-                    hintText: 'My Current Location',
+                    hintText: 'العنوان أو الموقع الحالي',
                     isObsecre: false,
                     enabled: true,
                   ),
@@ -260,11 +227,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         color: Colors.white,
                       ),
                       label: const Text(
-                        'Get My Current Location',
+                        'تحديد موقعي الحالي',
                         style: TextStyle(color: Colors.white),
                       ),
                       style: ElevatedButton.styleFrom(
-                          primary: Color.fromARGB(255, 249, 168, 87),
+                          backgroundColor: Color.fromARGB(255, 249, 168, 87),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                           )),
@@ -281,11 +248,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 formValidation(),
               },
               style: ElevatedButton.styleFrom(
-                  primary: Colors.redAccent.shade100,
+                  backgroundColor: const Color(0xFF166534),
                   padding:
                       const EdgeInsets.symmetric(horizontal: 50, vertical: 20)),
               child: const Text(
-                "Sign Up",
+                "إرسال طلب الانضمام",
                 style:
                     TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
               ),

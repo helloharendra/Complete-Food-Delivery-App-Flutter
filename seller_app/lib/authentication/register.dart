@@ -1,299 +1,152 @@
-import 'dart:io';
+import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:geocoding/geocoding.dart';
-import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:seller_app/widgets/custom_text_field.dart';
-import 'package:seller_app/widgets/error_Dialog.dart';
-import 'package:seller_app/widgets/loading_dialog.dart';
-import 'package:firebase_storage/firebase_storage.dart' as fStorage;
-
-import 'package:shared_preferences/shared_preferences.dart';
-
-import '../global/global.dart';
-import '../mainScreens/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
-
-  @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  @override State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
-  TextEditingController nameController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-  TextEditingController confirmePasswordController = TextEditingController();
-  TextEditingController phoneController = TextEditingController();
-  TextEditingController locationController = TextEditingController();
-  TextEditingController emailController = TextEditingController();
+  static final Uri _uploadEndpoint = Uri.parse('http://169.58.246.131:8091/upload');
+  final _formKey = GlobalKey<FormState>();
+  final _name = TextEditingController();
+  final _storeName = TextEditingController();
+  final _email = TextEditingController();
+  final _password = TextEditingController();
+  final _phone = TextEditingController();
+  final _address = TextEditingController();
+  final _description = TextEditingController();
+  final _picker = ImagePicker();
+  XFile? _logo;
+  XFile? _banner;
+  bool _saving = false;
+  String? _categoryId;
+  String? _categoryName;
 
-  XFile? imageXFile;
-  final ImagePicker _picker = ImagePicker();
+  @override void dispose() { _name.dispose(); _storeName.dispose(); _email.dispose(); _password.dispose(); _phone.dispose(); _address.dispose(); _description.dispose(); super.dispose(); }
 
-  Position? position;
-  List<Placemark>? placeMarks;
+  Future<XFile?> _pick() => _picker.pickImage(source: ImageSource.gallery, imageQuality: 82, maxWidth: 1800);
 
-  String sellerImageUrl = "";
-
-  String completeAddress = "";
-
-  Future<void> _getImage() async {
-    imageXFile = await _picker.pickImage(source: ImageSource.gallery);
-    setState(() {
-      imageXFile;
-    });
+  Future<String> _upload(XFile file) async {
+    final request = http.MultipartRequest('POST', _uploadEndpoint);
+    request.files.add(http.MultipartFile.fromBytes('file', await file.readAsBytes(), filename: file.name));
+    final response = await request.send().timeout(const Duration(seconds: 45));
+    final body = await response.stream.bytesToString();
+    if (response.statusCode < 200 || response.statusCode >= 300) throw Exception('VPS upload HTTP ${response.statusCode}');
+    final data = jsonDecode(body) as Map<String,dynamic>;
+    final url = data['url']?.toString().trim() ?? '';
+    if (data['success'] != true || url.isEmpty) throw Exception('Invalid VPS upload response');
+    return url;
   }
 
-  getCurrentLocation() async {
-    LocationPermission permission = await Geolocator.requestPermission();
-    Position newPosition = await Geolocator.getCurrentPosition(
-      desiredAccuracy: LocationAccuracy.high,
-    );
-    position = newPosition;
-
-    placeMarks =
-        await placemarkFromCoordinates(position!.latitude, position!.longitude);
-
-    Placemark pMarks = placeMarks![0];
-    completeAddress =
-        '${pMarks.subThoroughfare} ${pMarks.thoroughfare},${pMarks.subLocality} ${pMarks.locality},${pMarks.subAdministrativeArea}, ${pMarks.administrativeArea} ${pMarks.postalCode},${pMarks.country}';
-    locationController.text = completeAddress;
-  }
-
-  Future<void> formValidation() async {
-    if (imageXFile == null) {
-      showDialog(
-          context: context,
-          builder: (context) {
-            return const ErrorDialog(message: "Please select an image");
-          });
-    } else {
-      if (passwordController.text == confirmePasswordController.text) {
-        if (confirmePasswordController.text.isNotEmpty &&
-            nameController.text.isNotEmpty &&
-            phoneController.text.isNotEmpty &&
-            locationController.text.isNotEmpty &&
-            emailController.text.isNotEmpty) {
-// start uploading the data
-          showDialog(
-              context: context,
-              builder: (context) {
-                return const LoadingDialog(
-                  message: "Registering Account...",
-                );
-              });
-          String fileName = DateTime.now().millisecondsSinceEpoch.toString();
-          fStorage.Reference reference = fStorage.FirebaseStorage.instance
-              .ref()
-              .child('sellers')
-              .child(fileName);
-          fStorage.UploadTask uploadTask =
-              reference.putFile(File(imageXFile!.path));
-
-          fStorage.TaskSnapshot taskSnapshot =
-              await uploadTask.whenComplete(() {});
-          await taskSnapshot.ref.getDownloadURL().then((url) {
-            sellerImageUrl = url;
-            authenticateSellerAndSignUp();
-          });
-        } else {
-          showDialog(
-              context: context,
-              builder: (context) {
-                return const ErrorDialog(
-                    message: "Please Enter Required info for registration");
-              });
-        }
-      } else {
-        showDialog(
-            context: context,
-            builder: (context) {
-              return const ErrorDialog(message: "Password don't match");
-            });
-      }
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    if (_categoryId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('اختار قسم المتجر')));
+      return;
     }
+    setState(() => _saving = true);
+    User? user;
+    try {
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(email: _email.text.trim(), password: _password.text.trim());
+      user = credential.user!;
+      await user.updateDisplayName(_name.text.trim());
+
+      // Images are deliberately optional. The merchant account must remain
+      // creatable while the external image service is unavailable.
+      String logoUrl = '';
+      String bannerUrl = '';
+      if (_logo != null) logoUrl = await _upload(_logo!);
+      if (_banner != null) bannerUrl = await _upload(_banner!);
+      final now = FieldValue.serverTimestamp();
+      final store = <String,dynamic>{
+        'storeId': user.uid, 'ownerId': user.uid, 'name': _storeName.text.trim(), 'description': _description.text.trim(),
+        'logo': logoUrl, 'cover': bannerUrl,
+        'logoUrl': logoUrl, 'imageUrl': logoUrl, 'bannerUrl': bannerUrl, 'coverUrl': bannerUrl,
+        'categoryId': _categoryId, 'categoryName': _categoryName, 'phone': _phone.text.trim(), 'whatsapp': _phone.text.trim(), 'address': _address.text.trim(),
+        'cityId': LaunchLocationDefaults.cityId, 'areaId': '', 'villageId': '',
+        'latitude': 0, 'longitude': 0, 'openingHours': '',
+        'deliveryEnabled': true, 'pickupEnabled': true, 'deliveryZones': <String>[],
+        'minimumOrder': 0, 'deliveryFee': 0,
+        'status': 'pending', 'verified': false, 'featured': false, 'isOpen': false,
+        'createdAt': now, 'updatedAt': now,
+      };
+      final batch = FirebaseFirestore.instance.batch();
+      batch.set(FirebaseFirestore.instance.collection('users').doc(user.uid), {'uid':user.uid,'name':_name.text.trim(),'email':_email.text.trim(),'phone':_phone.text.trim(),'address':_address.text.trim(),'photoUrl':logoUrl,'status':'active','cityId':LaunchLocationDefaults.cityId,'createdAt':now,'updatedAt':now});
+      batch.set(FirebaseFirestore.instance.collection('sellers').doc(user.uid), {'sellerUID':user.uid,'sellerEmail':_email.text.trim(),'sellerName':_name.text.trim(),'sellerAvtar':logoUrl,'phone':_phone.text.trim(),'address':_address.text.trim(),'status':'pending','cityId':LaunchLocationDefaults.cityId}, SetOptions(merge:true));
+      batch.set(FirebaseFirestore.instance.collection('merchantApplications').doc(user.uid), {'userId':user.uid,'ownerId':user.uid,'merchantName':_name.text.trim(),'name':_name.text.trim(),'storeName':_storeName.text.trim(),'categoryId':_categoryId,'categoryName':_categoryName,'logoUrl':logoUrl,'bannerUrl':bannerUrl,'phone':_phone.text.trim(),'address':_address.text.trim(),'cityId':LaunchLocationDefaults.cityId,'status':'pending','createdAt':now,'updatedAt':now});
+      batch.set(FirebaseFirestore.instance.collection('stores').doc(user.uid), store, SetOptions(merge:true));
+      await batch.commit();
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم إنشاء طلب المتجر. انتظر موافقة الإدارة.')));
+      Navigator.of(context).popUntil((route) => route.isFirst);
+    } catch (e) {
+      if (user != null) { try { await user.delete(); } catch (_) {} }
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('تعذر إنشاء المتجر: $e')));
+    } finally { if (mounted) setState(() => _saving = false); }
   }
 
-  void authenticateSellerAndSignUp() async {
-    User? currentUser;
+  InputDecoration _dec(String label, IconData icon) => InputDecoration(labelText: label, prefixIcon: Icon(icon));
 
-    await firebaseAuth
-        .createUserWithEmailAndPassword(
-      email: emailController.text.trim(),
-      password: passwordController.text.trim(),
-    )
-        .then((auth) {
-      currentUser = auth.user;
-    }).catchError((error) {
-      Navigator.pop(context);
-      showDialog(
-          context: context,
-          builder: (context) {
-            return ErrorDialog(
-              message: error.message.toString(),
-            );
-          });
-    });
-    if (currentUser != null) {
-      saveDataToFireStore(currentUser!).then((value) {
-        Navigator.pop(context);
-        Route newRoute = MaterialPageRoute(builder: (context) => HomeScreen());
-        Navigator.pushReplacement(context, newRoute);
-      });
-    }
-  }
+  @override Widget build(BuildContext context) => SingleChildScrollView(
+    padding: const EdgeInsets.all(18),
+    child: Form(key: _formKey, child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+      const Text('افتح متجرك على ديرب', style: TextStyle(fontSize:24,fontWeight:FontWeight.w900)),
+      const SizedBox(height:6), const Text('بيانات واضحة وصور قوية تخلي متجرك يظهر بشكل احترافي.'), const SizedBox(height:18),
+      Row(children:[Expanded(child:_ImagePickCard(title:'لوجو المتجر', file:_logo, onTap:() async { final x=await _pick(); if(x!=null)setState(()=>_logo=x); })), const SizedBox(width:10), Expanded(child:_ImagePickCard(title:'بانر المتجر', file:_banner, onTap:() async { final x=await _pick(); if(x!=null)setState(()=>_banner=x); }))]),
+      const SizedBox(height:16),
+      TextFormField(controller:_name, decoration:_dec('اسم صاحب المتجر',Icons.person_outline), validator:(v)=>v==null||v.trim().isEmpty?'مطلوب':null), const SizedBox(height:10),
+      TextFormField(controller:_storeName, decoration:_dec('اسم المتجر',Icons.storefront_outlined), validator:(v)=>v==null||v.trim().isEmpty?'مطلوب':null), const SizedBox(height:10),
+      StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+        stream: FirebaseFirestore.instance.collection('categories').where('active', isEqualTo: true).orderBy('sortOrder').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return const Text('تعذر تحميل الأقسام. حاول مرة أخرى.', style: TextStyle(color: Colors.red));
+          }
+          if (!snapshot.hasData) return const LinearProgressIndicator();
+          final documents = snapshot.data!.docs;
+          final categories = documents.isEmpty
+              ? LaunchCategoryDefaults.values.where((item) => item.active).toList(growable: false)
+              : documents.map((doc) => Category.fromMap(doc.id, doc.data())).toList(growable: false);
+          return DropdownButtonFormField<String>(
+            value: categories.any((category) => category.id == _categoryId) ? _categoryId : null,
+            decoration: _dec('قسم المتجر', Icons.grid_view_rounded),
+            items: categories.map((category) => DropdownMenuItem(value: category.id, child: Text(category.nameAr))).toList(),
+            onChanged: (value) {
+              Category? selected;
+              for (final category in categories) {
+                if (category.id == value) {
+                  selected = category;
+                  break;
+                }
+              }
+              setState(() {
+                _categoryId = value;
+                _categoryName = selected?.nameAr;
+              });
+            },
+            validator: (value) => value == null ? 'اختار قسم المتجر' : null,
+          );
+        },
+      ), const SizedBox(height:10),
+      TextFormField(controller:_description, maxLines:3, decoration:_dec('نبذة عن المتجر',Icons.notes_rounded)), const SizedBox(height:10),
+      TextFormField(controller:_phone, keyboardType:TextInputType.phone, decoration:_dec('رقم الهاتف / واتساب',Icons.phone_outlined), validator:(v)=>v==null||v.trim().isEmpty?'مطلوب':null), const SizedBox(height:10),
+      TextFormField(controller:_address, decoration:_dec('العنوان',Icons.location_on_outlined), validator:(v)=>v==null||v.trim().isEmpty?'مطلوب':null), const SizedBox(height:10),
+      TextFormField(controller:_email, keyboardType:TextInputType.emailAddress, decoration:_dec('البريد الإلكتروني',Icons.email_outlined), validator:(v)=>v!=null&&v.contains('@')?null:'بريد غير صحيح'), const SizedBox(height:10),
+      TextFormField(controller:_password, obscureText:true, decoration:_dec('كلمة المرور',Icons.lock_outline), validator:(v)=>(v?.length??0)>=6?null:'6 أحرف على الأقل'), const SizedBox(height:18),
+      FilledButton.icon(onPressed:_saving?null:_submit, icon:_saving?const SizedBox(width:20,height:20,child:CircularProgressIndicator(strokeWidth:2)):const Icon(Icons.storefront), label:Text(_saving?'جارٍ إنشاء المتجر...':'إرسال طلب المتجر')),
+      const SizedBox(height:24),
+    ])),
+  );
+}
 
-  Future saveDataToFireStore(User currentUser) async {
-    FirebaseFirestore.instance.collection('sellers').doc(currentUser.uid).set({
-      "sellerUID": currentUser.uid,
-      "sellerEmail": currentUser.email,
-      "sellerName": nameController.text.trim(),
-      "sellerAvtar": sellerImageUrl,
-      "phone": phoneController.text.trim(),
-      "address": completeAddress,
-      "status": "Approved",
-      "lat": position!.latitude,
-      "lng": position!.longitude,
-    });
-
-    // save data locally
-    sharedPreferences = await SharedPreferences.getInstance();
-    await sharedPreferences!.setString("uid", currentUser.uid);
-    await sharedPreferences!.setString("email", currentUser.email.toString());
-    await sharedPreferences!.setString("name", nameController.text.trim());
-    await sharedPreferences!.setString("PhotoUrl", sellerImageUrl);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Container(
-        child: Column(
-          mainAxisSize: MainAxisSize.max,
-          children: [
-            const SizedBox(
-              height: 10,
-            ),
-            InkWell(
-              onTap: () {
-                _getImage();
-              },
-              child: CircleAvatar(
-                  radius: MediaQuery.of(context).size.width * 0.20,
-                  backgroundColor: Colors.white,
-                  backgroundImage: imageXFile == null
-                      ? null
-                      : FileImage(
-                          File(imageXFile!.path),
-                        ),
-                  child: imageXFile == null
-                      ? Icon(
-                          Icons.add_photo_alternate,
-                          size: MediaQuery.of(context).size.width * 0.20,
-                          color: Colors.grey,
-                        )
-                      : null),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Form(
-              key: _formKey,
-              child: Column(
-                children: [
-                  CustomTextField(
-                    data: Icons.person,
-                    controller: nameController,
-                    hintText: 'Name',
-                    isObsecre: false,
-                  ),
-                  CustomTextField(
-                    data: Icons.email,
-                    controller: emailController,
-                    hintText: 'Email',
-                    isObsecre: false,
-                  ),
-                  CustomTextField(
-                    data: Icons.lock,
-                    controller: passwordController,
-                    hintText: 'Password',
-                    isObsecre: true,
-                  ),
-                  CustomTextField(
-                    data: Icons.lock,
-                    controller: confirmePasswordController,
-                    hintText: 'Confirm Password',
-                    isObsecre: true,
-                  ),
-                  CustomTextField(
-                    data: Icons.phone,
-                    controller: phoneController,
-                    hintText: 'Phone',
-                    isObsecre: false,
-                  ),
-                  CustomTextField(
-                    data: Icons.my_location,
-                    controller: locationController,
-                    hintText: 'Cafe/Restaurent Address',
-                    isObsecre: false,
-                    enabled: true,
-                  ),
-                  Container(
-                    width: 400,
-                    height: 40,
-                    alignment: Alignment.center,
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        //  print(completeAddress.toString());
-                        setState(() {
-                          getCurrentLocation();
-                        });
-                      },
-                      icon: const Icon(
-                        Icons.location_on,
-                        color: Colors.white,
-                      ),
-                      label: const Text(
-                        'Get My Current Location',
-                        style: TextStyle(color: Colors.white),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                          primary: Color.fromARGB(255, 250, 171, 119),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                          )),
-                    ),
-                  )
-                ],
-              ),
-            ),
-            const SizedBox(
-              height: 30,
-            ),
-            ElevatedButton(
-              onPressed: () => {
-                formValidation(),
-              },
-              style: ElevatedButton.styleFrom(
-                  primary: Color.fromARGB(255, 249, 117, 161),
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 50, vertical: 20)),
-              child: const Text(
-                "Sign Up",
-                style:
-                    TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
-              ),
-            ),
-            const SizedBox(
-              height: 30,
-            )
-          ],
-        ),
-      ),
-    );
-  }
+class _ImagePickCard extends StatelessWidget {
+  const _ImagePickCard({required this.title, required this.file, required this.onTap});
+  final String title; final XFile? file; final VoidCallback onTap;
+  @override Widget build(BuildContext context) => InkWell(onTap:onTap, borderRadius:BorderRadius.circular(18), child:Container(height:120, decoration:BoxDecoration(color:Theme.of(context).colorScheme.surface, borderRadius:BorderRadius.circular(18), border:Border.all(color:Theme.of(context).dividerColor)), child:Column(mainAxisAlignment:MainAxisAlignment.center,children:[Icon(file==null?Icons.add_photo_alternate_outlined:Icons.check_circle_outline,size:34,color:Theme.of(context).colorScheme.primary),const SizedBox(height:8),Text(file==null?title:'تم اختيار $title',textAlign:TextAlign.center,style:const TextStyle(fontWeight:FontWeight.w800))])));
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:user_app/assistant_methods/assistant_methods.dart';
@@ -30,7 +31,7 @@ class _PlacedOrderScreenState extends State<PlacedOrderScreen> {
       "isSuccess": true,
       "sellerUID": widget.sellerUID,
       "riderUID": "",
-      "status": "normal",
+      "status": OrderStatusCodec.toStorage(OrderStatus.waitingMerchantApproval),
       "orderId": orderId,
     });
 
@@ -44,7 +45,7 @@ class _PlacedOrderScreenState extends State<PlacedOrderScreen> {
       "isSuccess": true,
       "sellerUID": widget.sellerUID,
       "riderUID": "",
-      "status": "normal",
+      "status": OrderStatusCodec.toStorage(OrderStatus.waitingMerchantApproval),
       "orderId": orderId,
     }).whenComplete(() {
       clearCartNow(context);

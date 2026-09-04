@@ -1,0 +1,70 @@
+name: Build Dierb Web Previews
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dierb-super-app]
+    paths:
+      - 'user_app/**'
+      - 'seller_app/**'
+      - 'rider_app/**'
+      - 'packages/**'
+      - '.github/workflows/dierb-web-previews.yml'
+
+jobs:
+  customer-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+      - name: Get dependencies
+        working-directory: user_app
+        run: flutter pub get
+      - name: Build customer web
+        working-directory: user_app
+        run: flutter build web --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dierb-Customer-Web
+          path: user_app/build/web
+
+  merchant-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+      - name: Get dependencies
+        working-directory: seller_app
+        run: flutter pub get
+      - name: Build merchant web
+        working-directory: seller_app
+        run: flutter build web --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dierb-Merchant-Web
+          path: seller_app/build/web
+
+  rider-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.1'
+          channel: stable
+      - name: Get dependencies
+        working-directory: rider_app
+        run: flutter pub get
+      - name: Build rider web
+        working-directory: rider_app
+        run: flutter build web --release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dierb-Rider-Web
+          path: rider_app/build/web

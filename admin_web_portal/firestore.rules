@@ -1,9 +1,241 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if true;
-          
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && (request.auth.token.admin == true || exists(/databases/$(database)/documents/admins/$(request.auth.uid))); }
+    function isApprovedRider() {
+      return signedIn()
+        && exists(/databases/$(database)/documents/riders/$(request.auth.uid))
+        && get(/databases/$(database)/documents/riders/$(request.auth.uid)).data.status in ['approved', 'Approved'];
     }
+    function isAvailableApprovedRider() {
+      return isApprovedRider()
+        && get(/databases/$(database)/documents/riders/$(request.auth.uid)).data.available == true;
+    }
+    function owns(field) { return signedIn() && resource.data[field] == request.auth.uid; }
+    function createsOwn(field) { return signedIn() && request.resource.data[field] == request.auth.uid; }
+    function only(fields) { return request.resource.data.diff(resource.data).changedKeys().hasOnly(fields); }
+    function validOrderStore() {
+      return request.resource.data.storeId is string
+        && request.resource.data.sellerUID is string
+        && request.resource.data.sellerUID.size() > 0
+        && exists(/databases/$(database)/documents/stores/$(request.resource.data.storeId))
+        && get(/databases/$(database)/documents/stores/$(request.resource.data.storeId)).data.status == 'approved'
+        && get(/databases/$(database)/documents/stores/$(request.resource.data.storeId)).data.ownerId == request.resource.data.sellerUID;
+    }
+    function validOrderFinancials() {
+      return request.resource.data.subtotalPiasters is int
+        && request.resource.data.deliveryFeePiasters is int
+        && request.resource.data.discountPiasters is int
+        && request.resource.data.customerTotalPiasters is int
+        && request.resource.data.platformCommissionBps is int
+        && request.resource.data.platformCommissionPiasters is int
+        && request.resource.data.merchantNetPiasters is int
+        && request.resource.data.riderPayoutPiasters is int
+        && request.resource.data.platformDeliveryRevenuePiasters is int
+        && request.resource.data.subtotalPiasters >= 0
+        && request.resource.data.deliveryFeePiasters >= 0
+        && request.resource.data.discountPiasters >= 0
+        && request.resource.data.platformCommissionBps >= 0
+        && request.resource.data.platformCommissionBps <= 10000
+        && request.resource.data.customerTotalPiasters == request.resource.data.subtotalPiasters + request.resource.data.deliveryFeePiasters - request.resource.data.discountPiasters
+        && request.resource.data.platformCommissionPiasters >= 0
+        && request.resource.data.merchantNetPiasters == request.resource.data.subtotalPiasters - request.resource.data.platformCommissionPiasters
+        && request.resource.data.riderPayoutPiasters >= 0
+        && request.resource.data.riderPayoutPiasters <= request.resource.data.deliveryFeePiasters
+        && request.resource.data.platformDeliveryRevenuePiasters == request.resource.data.deliveryFeePiasters - request.resource.data.riderPayoutPiasters;
+    }
+    function ownsApprovedStore(storeId) {
+      return signedIn()
+        && storeId is string
+        && exists(/databases/$(database)/documents/stores/$(storeId))
+        && get(/databases/$(database)/documents/stores/$(storeId)).data.ownerId == request.auth.uid
+        && get(/databases/$(database)/documents/stores/$(storeId)).data.status == 'approved';
+    }
+    function merchantOrderTransition() {
+      return (resource.data.status in ['received', 'waitingMerchantApproval'] && request.resource.data.status in ['acceptedByMerchant', 'rejected', 'cancelled'])
+        || (resource.data.status in ['acceptedByMerchant', 'accepted'] && request.resource.data.status in ['preparing', 'cancelled'])
+        || (resource.data.status == 'preparing' && request.resource.data.status in ['readyForPickup', 'cancelled']);
+    }
+    function riderOrderTransition() {
+      return (resource.data.status == 'pickedUpByRider' && request.resource.data.status == 'onTheWay')
+        || (resource.data.status == 'onTheWay' && request.resource.data.status == 'delivered');
+    }
+    function orderParticipant(orderId) {
+      let order = get(/databases/$(database)/documents/orders/$(orderId)).data;
+      return signedIn() && request.auth.uid in [order.orderedBy, order.sellerUID, order.riderUID];
+    }
+
+    match /admins/{uid} { allow read: if signedIn() && request.auth.uid == uid; allow write: if false; }
+    match /users/{uid} {
+      allow create: if signedIn() && request.auth.uid == uid && !request.resource.data.keys().hasAny(['admin','role','verified','featured','paid']);
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == uid);
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == uid && only(['name','phone','photoUrl','address','updatedAt']));
+      allow delete: if isAdmin();
+      match /orders/{id} { allow create: if signedIn() && request.auth.uid == uid && request.resource.data.orderedBy == uid; allow read: if isAdmin() || (signedIn() && request.auth.uid == uid); allow update: if isAdmin(); }
+    }
+    match /sellers/{id} {
+      allow create: if signedIn() && request.auth.uid == id && request.resource.data.status == 'pending';
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == id);
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == id && only(['sellerName','sellerAvtar','phone','address','lat','lng','updatedAt']));
+      allow delete: if isAdmin();
+    }
+    match /merchantApplications/{id} {
+      allow create: if signedIn()
+        && request.auth.uid == id
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'pending';
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == id);
+      allow update, delete: if isAdmin();
+    }
+    match /riders/{id} {
+      allow create: if signedIn() && request.auth.uid == id && request.resource.data.status == 'pending';
+      allow read: if isAdmin() || (signedIn() && request.auth.uid == id);
+      allow update: if isAdmin() || (signedIn() && request.auth.uid == id && only(['available','availabilityUpdatedAt','lat','lng','address','phone','updatedAt']));
+      allow delete: if isAdmin();
+    }
+    match /stores/{id} {
+      allow read: if isAdmin() || resource.data.status == 'approved' || owns('ownerId') || (signedIn() && request.auth.uid == id);
+      allow create: if createsOwn('ownerId') && request.resource.data.status == 'pending' && request.resource.data.verified == false && request.resource.data.featured == false;
+      allow update: if isAdmin() || ((owns('ownerId') || (signedIn() && request.auth.uid == id)) && only(['name','description','logo','cover','categoryId','categoryName','cityId','areaId','villageId','address','latitude','longitude','phone','whatsapp','openingHours','isOpen','deliveryEnabled','pickupEnabled','deliveryZones','minimumOrder','deliveryFee','updatedAt']));
+      allow delete: if isAdmin();
+    }
+    match /products/{id} {
+      allow read: if isAdmin()
+        || owns('ownerId')
+        || (resource.data.available == true
+            && exists(/databases/$(database)/documents/stores/$(resource.data.storeId))
+            && get(/databases/$(database)/documents/stores/$(resource.data.storeId)).data.status == 'approved');
+      allow create: if createsOwn('ownerId')
+        && ownsApprovedStore(request.resource.data.storeId)
+        && request.resource.data.featured == false;
+      allow update: if isAdmin() || (owns('ownerId') && only(['name','description','images','price','salePrice','stock','categoryId','options','available','deliveryEligible','updatedAt']));
+      allow delete: if isAdmin() || owns('ownerId');
+    }
+    match /orders/{id} {
+      allow create: if createsOwn('orderedBy')
+        && request.resource.data.status in ['received','waitingMerchantApproval']
+        && request.resource.data.riderUID == ''
+        && request.resource.data.paymentMethod == 'cashOnDelivery'
+        && request.resource.data.paymentStatus == 'awaitingCashCollection'
+        && request.resource.data.cashCollected == false
+        && validOrderStore()
+        && validOrderFinancials();
+      allow read: if isAdmin()
+        || owns('orderedBy')
+        || owns('sellerUID')
+        || owns('riderUID')
+        || (isAvailableApprovedRider() && resource.data.riderUID == '' && resource.data.status == 'readyForPickup');
+      allow update: if isAdmin()
+        || (owns('sellerUID') && merchantOrderTransition() && only(['status','updatedAt']))
+        || (owns('riderUID') && isApprovedRider() && riderOrderTransition()
+            && only(['status','lat','lng','address','pickedUpAt','onTheWayAt','deliveredAt','cashCollected','collectedBy','collectedAt','paymentStatus','updatedAt'])
+            && (request.resource.data.status != 'delivered'
+                || resource.data.paymentMethod != 'cashOnDelivery'
+                || (request.resource.data.cashCollected == true
+                    && request.resource.data.collectedBy == request.auth.uid
+                    && request.resource.data.paymentStatus == 'cashCollected')))
+        || (isAvailableApprovedRider()
+            && resource.data.riderUID == ''
+            && resource.data.status == 'readyForPickup'
+            && request.resource.data.riderUID == request.auth.uid
+            && request.resource.data.status == 'pickedUpByRider'
+            && only(['riderUID','riderName','status','lat','lng','address','pickedUpAt','updatedAt']));
+      match /messages/{messageId} {
+        allow read: if orderParticipant(id);
+        allow create: if orderParticipant(id)
+          && request.resource.data.senderId == request.auth.uid
+          && request.resource.data.senderRole in ['customer','merchant','rider']
+          && request.resource.data.type in ['text','riderArrived']
+          && request.resource.data.text is string
+          && request.resource.data.text.size() > 0
+          && request.resource.data.text.size() <= 1000
+          && (request.resource.data.type != 'riderArrived'
+              || (request.resource.data.senderRole == 'rider'
+                  && get(/databases/$(database)/documents/orders/$(id)).data.riderUID == request.auth.uid));
+        allow update, delete: if isAdmin();
+      }
+    }
+    match /deviceTokens/{uid} {
+      allow read, write: if false;
+      match /tokens/{tokenId} {
+        allow read: if signedIn() && request.auth.uid == uid;
+        allow create, update: if signedIn()
+          && request.auth.uid == uid
+          && request.resource.data.uid == request.auth.uid;
+        allow delete: if signedIn() && request.auth.uid == uid;
+      }
+    }
+    match /notifications/{id} {
+      allow read: if signedIn() && resource.data.recipientId == request.auth.uid;
+      allow create, delete: if false;
+      allow update: if signedIn() && resource.data.recipientId == request.auth.uid
+        && only(['readAt']);
+    }
+    match /categories/{id} { allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
+    match /cities/{id} { allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
+    match /areas/{id} { allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
+    match /villages/{id} { allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
+    match /serviceZones/{id} { allow read: if resource.data.active == true || isAdmin(); allow write: if isAdmin(); }
+    match /communityPosts/{postId} {
+      allow read: if resource.data.status == 'published' || isAdmin() || owns('authorId');
+      allow create: if createsOwn('authorId') && request.resource.data.sponsored == false && request.resource.data.authorVerified == false && request.resource.data.helpfulCount == 0 && request.resource.data.replyCount == 0 && request.resource.data.status in ['published','pendingReview'];
+      allow update: if isAdmin()
+        || (owns('authorId') && only(['title','body','type','categoryId','images','updatedAt']))
+        || (signedIn() && only(['helpfulCount']) && request.resource.data.helpfulCount == resource.data.helpfulCount + 1)
+        || (signedIn() && only(['replyCount','updatedAt']) && request.resource.data.replyCount == resource.data.replyCount + 1);
+      allow delete: if isAdmin();
+      match /replies/{id} { allow read: if resource.data.status == 'published' || isAdmin(); allow create: if createsOwn('authorId') && request.resource.data.authorVerified == false && request.resource.data.helpfulCount == 0; allow update, delete: if isAdmin(); }
+      match /helpful/{uid} { allow read: if signedIn(); allow create: if signedIn() && request.auth.uid == uid; allow update, delete: if false; }
+    }
+    match /reports/{id} { allow create: if createsOwn('reporterId') && request.resource.data.status == 'open'; allow read, update, delete: if isAdmin(); }
+    match /services/{id} {
+      allow read: if isAdmin() || resource.data.status == 'published' || owns('ownerId');
+      allow create: if createsOwn('ownerId') && request.resource.data.status == 'pending' && request.resource.data.verified == false && request.resource.data.featured == false;
+      allow update: if isAdmin() || (owns('ownerId') && only(['name','description','logo','serviceCategory','cityId','areaId','villageId','phone','whatsapp','availability','updatedAt']));
+      allow delete: if isAdmin() || owns('ownerId');
+    }
+    match /properties/{id} {
+      allow read: if isAdmin() || resource.data.status == 'published' || owns('ownerId');
+      allow create: if createsOwn('ownerId') && request.resource.data.status == 'pending' && request.resource.data.featured == false;
+      allow update: if isAdmin() || (owns('ownerId') && only(['title','type','price','areaSize','cityId','areaId','villageId','images','description','contact','updatedAt']));
+      allow delete: if isAdmin() || owns('ownerId');
+    }
+    match /jobs/{id} {
+      allow read: if isAdmin() || resource.data.status == 'published' || owns('ownerId');
+      allow create: if createsOwn('ownerId') && request.resource.data.status == 'pending' && request.resource.data.featured == false;
+      allow update: if isAdmin() || (owns('ownerId') && only(['title','employer','cityId','areaId','villageId','salary','description','contact','expiresAt','updatedAt']));
+      allow delete: if isAdmin() || owns('ownerId');
+    }
+    match /directoryEntries/{id} {
+      allow read: if isAdmin() || resource.data.status == 'published' || owns('ownerId');
+      allow create: if createsOwn('ownerId') && request.resource.data.status == 'pending' && request.resource.data.verified == false;
+      allow update: if isAdmin() || (owns('ownerId') && only(['name','description','categoryId','cityId','areaId','villageId','phone','whatsapp','latitude','longitude','updatedAt']));
+      allow delete: if isAdmin() || owns('ownerId');
+    }
+    match /offers/{id} {
+      allow read: if isAdmin() || resource.data.status == 'published' || owns('ownerId');
+      allow create: if createsOwn('ownerId') && ownsApprovedStore(request.resource.data.storeId) && request.resource.data.status == 'pending' && request.resource.data.sponsored == false;
+      allow update: if isAdmin() || (owns('ownerId') && only(['title','description','images','price','salePrice','startsAt','endsAt','updatedAt']));
+      allow delete: if isAdmin() || owns('ownerId');
+    }
+    match /appSettings/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /subscriptions/{id} { allow read: if isAdmin() || owns('userId'); allow write: if isAdmin(); }
+    match /payments/{id} {
+      allow read: if isAdmin() || owns('userId') || owns('merchantId');
+      allow create, update, delete: if isAdmin();
+    }
+    match /merchantSubscriptions/{id} {
+      allow read: if isAdmin() || owns('merchantId');
+      allow create, update, delete: if isAdmin();
+    }
+    match /merchantLedger/{id} {
+      allow read: if isAdmin() || owns('merchantId');
+      allow create, update, delete: if isAdmin();
+    }
+    match /paymentWebhookReceipts/{id} { allow read, write: if false; }
+    match /auditLogs/{id} { allow read, create: if isAdmin(); allow update, delete: if false; }
+    match /{document=**} { allow read, write: if isAdmin(); }
   }
 }
+

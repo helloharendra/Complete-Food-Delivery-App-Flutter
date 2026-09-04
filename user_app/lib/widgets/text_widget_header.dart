@@ -1,40 +1,30 @@
 import 'package:flutter/material.dart';
 
 class TextWidgetHeader extends SliverPersistentHeaderDelegate {
-  String? title;
-  TextWidgetHeader({this.title});
+  const TextWidgetHeader({required this.title});
+
+  final String title;
 
   @override
-  Widget build(
-    BuildContext context,
-    double shrinkOffset,
-    bool overlapsContent,
-  ) {
-    return InkWell(
-      onTap: () {},
-      child: Container(
-        height: 80,
-        width: MediaQuery.of(context).size.width,
-        alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.pinkAccent, Colors.redAccent],
-            begin: FractionalOffset(0.0, 0.0),
-            end: FractionalOffset(1.0, 0.0),
-            stops: [0.0, 1.0],
-            tileMode: TileMode.clamp,
-          ),
-        ),
-        child: InkWell(
+  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+    final colors = Theme.of(context).colorScheme;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.surface,
+        border: Border(bottom: BorderSide(color: colors.outlineVariant)),
+      ),
+      child: Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 18),
           child: Text(
-            title!,
-            maxLines: 2,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-                fontFamily: "signatra",
-                fontSize: 30,
-                letterSpacing: 2,
-                color: Colors.white),
+            title,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: colors.onSurface,
+                ),
           ),
         ),
       ),
@@ -42,17 +32,12 @@ class TextWidgetHeader extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 50;
-  @override
-  double get minExtent => 50;
+  double get maxExtent => 58;
 
   @override
-  bool shouldRebild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      true;
+  double get minExtent => 58;
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {
-    // TODO: implement shouldRebuild
-    throw UnimplementedError();
-  }
+  bool shouldRebuild(covariant TextWidgetHeader oldDelegate) =>
+      title != oldDelegate.title;
 }

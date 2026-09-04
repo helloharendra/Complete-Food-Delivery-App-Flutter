@@ -2,98 +2,76 @@ import 'package:flutter/material.dart';
 
 import '../models/items.dart';
 
-class CartItemDesign extends StatefulWidget {
-  final Items? model;
-  BuildContext? context;
-  final int? quanNumber;
-
-  CartItemDesign({
+class CartItemDesign extends StatelessWidget {
+  const CartItemDesign({
     super.key,
     this.model,
-    this.context,
     this.quanNumber,
-  });
+    BuildContext? context,
+  }) : legacyContext = context;
 
-  @override
-  State<CartItemDesign> createState() => _CartItemDesignState();
-}
+  final Items? model;
+  final int? quanNumber;
+  final BuildContext? legacyContext;
 
-class _CartItemDesignState extends State<CartItemDesign> {
   @override
   Widget build(BuildContext context) {
-    return InkWell(
-      onTap: () {},
+    final item = model;
+    if (item == null) return const SizedBox.shrink();
+    final image = item.thumbnailUrl ?? '';
+    final colors = Theme.of(context).colorScheme;
+    return Card(
+      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+      clipBehavior: Clip.antiAlias,
       child: Padding(
-        padding: EdgeInsets.all(6),
-        child: Container(
-          height: 165,
-          width: MediaQuery.of(context).size.width,
-          child: Row(
-            children: [
-              Image.network(
-                widget.model!.thumbnailUrl!,
-                width: 100,
-                height: 120,
+        padding: const EdgeInsets.all(10),
+        child: Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(14),
+              child: SizedBox(
+                width: 92,
+                height: 92,
+                child: image.isEmpty
+                    ? ColoredBox(
+                        color: colors.surfaceContainerHighest,
+                        child: Icon(Icons.inventory_2_outlined, color: colors.outline),
+                      )
+                    : Image.network(
+                        image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, __, ___) => ColoredBox(
+                          color: colors.surfaceContainerHighest,
+                          child: Icon(Icons.broken_image_outlined, color: colors.outline),
+                        ),
+                      ),
               ),
-              const SizedBox(
-                width: 6,
-              ),
-              Column(
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    widget.model!.title!,
-                    style: const TextStyle(
-                      color: Colors.black,
-                      fontSize: 16,
-                      fontFamily: "kiwi",
-                    ),
+                    item.title ?? 'منتج',
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w900),
                   ),
-                  const SizedBox(
-                    height: 1,
+                  const SizedBox(height: 8),
+                  Text(
+                    'الكمية: ${quanNumber ?? 1}',
+                    style: TextStyle(color: colors.onSurfaceVariant, fontWeight: FontWeight.w700),
                   ),
-                  Row(
-                    children: [
-                      const Text(
-                        "x",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontFamily: "Acme",
-                        ),
-                      ),
-                      Text(
-                        widget.quanNumber.toString(),
-                        style: const TextStyle(
-                          color: Colors.black,
-                          fontSize: 16,
-                          fontFamily: "Acme",
-                        ),
-                      ),
-                    ],
+                  const SizedBox(height: 4),
+                  Text(
+                    '${item.price ?? 0} ج.م',
+                    style: TextStyle(color: colors.primary, fontSize: 17, fontWeight: FontWeight.w900),
                   ),
-                  Row(
-                    children: [
-                      const Text(
-                        "Price",
-                        style: TextStyle(fontSize: 16, color: Colors.blue),
-                      ),
-                      const Text(
-                        "₹",
-                        style: TextStyle(fontSize: 16, color: Colors.blue),
-                      ),
-                      Text(
-                        widget.model!.price.toString(),
-                        style:
-                            const TextStyle(fontSize: 16, color: Colors.blue),
-                      )
-                    ],
-                  )
                 ],
-              )
-            ],
-          ),
+              ),
+            ),
+          ],
         ),
       ),
     );

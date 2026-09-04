@@ -1,93 +1,24 @@
 {
   "indexes": [
-    {
-      "collectionGroup": "items",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "itemId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "publishedDate",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "items",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "itemId",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "publishedDate",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "items",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "sellerUID",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "publishedDate",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "orders",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "sellerUID",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "orderTime",
-          "order": "DESCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "orders",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "orderTime",
-          "order": "ASCENDING"
-        }
-      ]
-    },
-    {
-      "collectionGroup": "orders",
-      "queryScope": "COLLECTION",
-      "fields": [
-        {
-          "fieldPath": "status",
-          "order": "ASCENDING"
-        },
-        {
-          "fieldPath": "orderTime",
-          "order": "DESCENDING"
-        }
-      ]
-    }
+    {"collectionGroup":"orders","queryScope":"COLLECTION","fields":[{"fieldPath":"sellerUID","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"}]},
+    {"collectionGroup":"orders","queryScope":"COLLECTION","fields":[{"fieldPath":"riderUID","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"}]},
+    {"collectionGroup":"orders","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"riderUID","order":"ASCENDING"}]},
+    {"collectionGroup":"products","queryScope":"COLLECTION","fields":[{"fieldPath":"storeId","order":"ASCENDING"},{"fieldPath":"available","order":"ASCENDING"}]},
+    {"collectionGroup":"replies","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"createdAt","order":"ASCENDING"}]},
+    {"collectionGroup":"items","queryScope":"COLLECTION","fields":[{"fieldPath":"itemId","order":"ASCENDING"},{"fieldPath":"publishedDate","order":"DESCENDING"}]},
+    {"collectionGroup":"orders","queryScope":"COLLECTION","fields":[{"fieldPath":"sellerUID","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"orderTime","order":"DESCENDING"}]},
+    {"collectionGroup":"orders","queryScope":"COLLECTION","fields":[{"fieldPath":"riderUID","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"orderTime","order":"DESCENDING"}]},
+    {"collectionGroup":"stores","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"cityId","order":"ASCENDING"},{"fieldPath":"featured","order":"DESCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}]},
+    {"collectionGroup":"products","queryScope":"COLLECTION","fields":[{"fieldPath":"storeId","order":"ASCENDING"},{"fieldPath":"available","order":"ASCENDING"},{"fieldPath":"featured","order":"DESCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}]},
+    {"collectionGroup":"communityPosts","queryScope":"COLLECTION","fields":[{"fieldPath":"cityId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"sponsored","order":"DESCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"categories","queryScope":"COLLECTION","fields":[{"fieldPath":"active","order":"ASCENDING"},{"fieldPath":"sortOrder","order":"ASCENDING"}]},
+    {"collectionGroup":"areas","queryScope":"COLLECTION","fields":[{"fieldPath":"cityId","order":"ASCENDING"},{"fieldPath":"active","order":"ASCENDING"},{"fieldPath":"nameAr","order":"ASCENDING"}]},
+    {"collectionGroup":"villages","queryScope":"COLLECTION","fields":[{"fieldPath":"cityId","order":"ASCENDING"},{"fieldPath":"active","order":"ASCENDING"},{"fieldPath":"nameAr","order":"ASCENDING"}]},
+    {"collectionGroup":"payments","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"payments","queryScope":"COLLECTION","fields":[{"fieldPath":"merchantId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"merchantSubscriptions","queryScope":"COLLECTION","fields":[{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"nextPaymentDueAt","order":"ASCENDING"}]},
+    {"collectionGroup":"merchantLedger","queryScope":"COLLECTION","fields":[{"fieldPath":"merchantId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]},
+    {"collectionGroup":"auditLogs","queryScope":"COLLECTION","fields":[{"fieldPath":"entity","order":"ASCENDING"},{"fieldPath":"entityId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"}]}
   ],
   "fieldOverrides": []
 }

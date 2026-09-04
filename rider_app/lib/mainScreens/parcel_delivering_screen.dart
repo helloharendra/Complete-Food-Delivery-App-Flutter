@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
 import 'package:flutter/material.dart';
 import 'package:rider_app/assistant_methods/get_current_location.dart';
 import 'package:rider_app/maps/map_utils.dart';
@@ -38,7 +39,7 @@ class _ParcelDeliveringScreenState extends State<ParcelDeliveringScreen> {
             .toString();
     // ((double.parse(previousRidersEarnings))+(double.parse(perParcelDeliveryAmount))).toString();
     FirebaseFirestore.instance.collection("orders").doc(getOrederId).update({
-      "status": "ended",
+      "status": OrderStatusCodec.toStorage(OrderStatus.delivered),
       "address": completeAddress,
       "lat": position!.latitude,
       "lng": position!.longitude,
@@ -66,7 +67,7 @@ class _ParcelDeliveringScreenState extends State<ParcelDeliveringScreen> {
           .collection("orders")
           .doc(getOrederId)
           .update({
-        "status": "ended",
+        "status": OrderStatusCodec.toStorage(OrderStatus.delivered),
         "riderUID": sharedPreferences!.getString("uid"),
       });
     });

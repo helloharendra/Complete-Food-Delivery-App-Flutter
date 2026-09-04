@@ -1,0 +1,10 @@
+name: dierb_core
+description: Shared domain contracts for Dierb customer, merchant, rider and admin apps.
+version: 0.1.0
+publish_to: none
+
+environment:
+  sdk: '>=2.19.0 <4.0.0'
+
+dev_dependencies:
+  test: ^1.24.0

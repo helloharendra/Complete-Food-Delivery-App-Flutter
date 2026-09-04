@@ -140,7 +140,7 @@ class _AllVerifiedRidersScreenState extends State<AllVerifiedRidersScreen> {
                   Padding(
                     padding: const EdgeInsets.all(10.0),
                     child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(primary: Colors.red),
+                      style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
                       icon: const Icon(
                         Icons.person_pin_sharp,
                         color: Colors.white,

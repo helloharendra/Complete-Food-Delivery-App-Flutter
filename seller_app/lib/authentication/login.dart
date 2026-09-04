@@ -1,8 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:seller_app/authentication/auth_screen.dart';
 import 'package:seller_app/global/global.dart';
 import 'package:seller_app/widgets/error_Dialog.dart';
 import 'package:seller_app/widgets/loading_dialog.dart';
@@ -22,14 +20,13 @@ class _LoginScreenState extends State<LoginScreen> {
   TextEditingController passwordController = TextEditingController();
   formValidation() {
     if (emailController.text.isNotEmpty && passwordController.text.isNotEmpty) {
-// login
       loginNow();
     } else {
       showDialog(
           context: context,
           builder: (context) {
             return const ErrorDialog(
-              message: "Please Enter Email or Password",
+              message: "اكتب البريد الإلكتروني وكلمة المرور",
             );
           });
     }
@@ -40,7 +37,7 @@ class _LoginScreenState extends State<LoginScreen> {
         context: context,
         builder: (c) {
           return const LoadingDialog(
-            message: 'Checking Creadential',
+            message: 'جاري تسجيل الدخول...',
           );
         });
     User? currentUser;
@@ -62,47 +59,34 @@ class _LoginScreenState extends State<LoginScreen> {
           });
     });
     if (currentUser != null) {
-      readDataAndSetDataLocally(currentUser!);
+      await readDataAndSetDataLocally(currentUser!);
     }
   }
 
   Future readDataAndSetDataLocally(User currentUser) async {
     await FirebaseFirestore.instance
-        .collection("sellers")
+        .collection("stores")
         .doc(currentUser.uid)
         .get()
         .then((snapshot) async {
       if (snapshot.exists) {
-        if (snapshot.data()!["status"] == "Approved") {
-          await sharedPreferences!.setString("uid", currentUser.uid);
-          await sharedPreferences!
-              .setString("email", snapshot.data()!["sellerEmail"]);
-          await sharedPreferences!
-              .setString("name", snapshot.data()!["sellerName"]);
-          await sharedPreferences!
-              .setString("PhotoUrl", snapshot.data()!["sellerAvtar"]);
-          // ignore: use_build_context_synchronously
-          Navigator.pop(context);
-          // ignore: use_build_context_synchronously
-          Navigator.push(context,
-              MaterialPageRoute(builder: (context) => const HomeScreen()));
-        } else {
-          firebaseAuth.signOut();
-          Navigator.pop(context);
-          Fluttertoast.showToast(
-              msg:
-                  "Admin has Blocked your account \n\n Mail to:admin@gmail.com");
-        }
-      } else {
-        firebaseAuth.signOut();
+        final data = snapshot.data()!;
+        await sharedPreferences!.setString("uid", currentUser.uid);
+        await sharedPreferences!.setString("email", currentUser.email ?? '');
+        await sharedPreferences!.setString("name", (data["name"] ?? 'تاجر ديرب').toString());
+        await sharedPreferences!.setString("PhotoUrl", (data["logo"] ?? '').toString());
+        if (!mounted) return;
         Navigator.pop(context);
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const AuthScreen()));
+        Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (context) => const HomeScreen()), (_) => false);
+      } else {
+        await firebaseAuth.signOut();
+        if (!mounted) return;
+        Navigator.pop(context);
         showDialog(
             context: context,
             builder: (context) {
               return const ErrorDialog(
-                message: "no record found",
+                message: "لا يوجد متجر مرتبط بهذا الحساب. أنشئ طلب تاجر جديدًا.",
               );
             });
       }
@@ -132,13 +116,13 @@ class _LoginScreenState extends State<LoginScreen> {
                 CustomTextField(
                   data: Icons.email,
                   controller: emailController,
-                  hintText: 'Email',
+                  hintText: 'البريد الإلكتروني',
                   isObsecre: false,
                 ),
                 CustomTextField(
                   data: Icons.lock,
                   controller: passwordController,
-                  hintText: 'Password',
+                  hintText: 'كلمة المرور',
                   isObsecre: true,
                 ),
               ],
@@ -149,11 +133,11 @@ class _LoginScreenState extends State<LoginScreen> {
               formValidation();
             },
             style: ElevatedButton.styleFrom(
-                primary: Color.fromARGB(255, 249, 117, 161),
+                backgroundColor: const Color(0xFF166534),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 50, vertical: 20)),
             child: const Text(
-              "Login",
+              "تسجيل الدخول",
               style:
                   TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),

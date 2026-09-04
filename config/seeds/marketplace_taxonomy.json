@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "serviceCategories": [
+    "سباك", "كهربائي", "نجار", "نقاش", "تكييف", "صيانة أجهزة", "موبايلات",
+    "محامي", "محاسب", "مدرس", "تنظيف", "نقل أثاث"
+  ],
+  "directoryCategories": [
+    "أطباء", "عيادات", "صيدليات", "مدارس", "سناتر", "محامين",
+    "مصالح وخدمات", "ورش", "شركات", "محلات"
+  ],
+  "propertyTypes": ["sale", "rent", "land", "shop", "apartment", "house", "warehouse"],
+  "monetizationDefaults": {
+    "merchantMonthly": 0,
+    "orderCommissionPercent": 0,
+    "deliveryCommissionPercent": 0,
+    "featuredStoreDaily": 0,
+    "featuredProductDaily": 0,
+    "sponsoredPostDaily": 0,
+    "propertyPackage": 0,
+    "jobPackage": 0,
+    "servicePackage": 0
+  }
+}

@@ -1,0 +1,88 @@
+name: Deploy Dierb Firebase Backend
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [dierb-super-app]
+    paths:
+      - "firebase.json"
+      - "admin_web_portal/firestore.rules"
+      - "admin_web_portal/firestore.indexes.json"
+      - "functions/**"
+      - ".github/workflows/firebase-backend-deploy.yml"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dierb-firebase-backend-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Firestore + Functions deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      FIREBASE_PROJECT_ID: dierb-29548
+      FIREBASE_SERVICE_ACCOUNT_JSON: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_DIERB_29548 }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify deploy credential exists
+        shell: bash
+        run: |
+          if [[ -z "$FIREBASE_SERVICE_ACCOUNT_JSON" ]]; then
+            echo "::error::Missing GitHub secret FIREBASE_SERVICE_ACCOUNT_DIERB_29548"
+            echo "Add the Firebase/Google service-account JSON as that repository secret, then re-run this workflow."
+            exit 1
+          fi
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Functions dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Validate Functions source
+        working-directory: functions
+        run: npm run lint
+
+      - name: Install Firebase CLI
+        run: npm install --global firebase-tools
+
+      - name: Write temporary Google credential
+        shell: bash
+        run: |
+          umask 077
+          printf '%s' "$FIREBASE_SERVICE_ACCOUNT_JSON" > "$RUNNER_TEMP/firebase-service-account.json"
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$RUNNER_TEMP/firebase-service-account.json" >> "$GITHUB_ENV"
+
+      - name: Verify Firebase target
+        shell: bash
+        run: |
+          grep -q 'admin_web_portal/firestore.rules' firebase.json
+          grep -q 'admin_web_portal/firestore.indexes.json' firebase.json
+          grep -q '"source": "functions"' firebase.json
+
+      - name: Deploy Firestore rules and indexes
+        run: firebase deploy --project "$FIREBASE_PROJECT_ID" --only "firestore:rules,firestore:indexes" --non-interactive
+
+      - name: Deploy Cloud Functions
+        run: firebase deploy --project "$FIREBASE_PROJECT_ID" --only functions --non-interactive
+
+      - name: Deployment summary
+        if: success()
+        run: |
+          echo "### Dierb Firebase backend deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Project: $FIREBASE_PROJECT_ID" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Firestore rules: deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Firestore indexes: deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Cloud Functions: deployed" >> "$GITHUB_STEP_SUMMARY"

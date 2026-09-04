@@ -1,0 +1,7 @@
+{
+  "functions": { "source": "functions" },
+  "firestore": {
+    "rules": "admin_web_portal/firestore.rules",
+    "indexes": "admin_web_portal/firestore.indexes.json"
+  }
+}

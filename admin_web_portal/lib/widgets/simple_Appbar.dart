@@ -1,8 +1,8 @@
 import 'package:admin_web_portal/mainScreens/home_screen.dart';
 import 'package:flutter/material.dart';
 
-class SimpleAppBar extends StatelessWidget with PreferredSizeWidget {
-  String? title;
+class SimpleAppBar extends StatelessWidget implements PreferredSizeWidget {
+  final String? title;
 
   final PreferredSizeWidget? bottom;
 

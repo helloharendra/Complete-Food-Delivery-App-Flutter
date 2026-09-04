@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:dierb_core/dierb_core.dart';
 import 'package:flutter/material.dart';
 import 'package:user_app/assistant_methods/assistant_methods.dart';
 import 'package:user_app/global/global.dart';
@@ -26,7 +27,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               .collection("users")
               .doc(sharedPreferences?.getString("uid"))
               .collection("orders")
-              .where("status", isEqualTo: "ended")
+              .where("status", whereIn: <String>['ended', OrderStatus.delivered.name, OrderStatus.cancelled.name])
               .orderBy("orderTime", descending: true)
               .snapshots(),
           builder: (c, snapshot) {

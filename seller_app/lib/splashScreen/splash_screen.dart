@@ -3,79 +3,40 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:seller_app/authentication/auth_screen.dart';
 import 'package:seller_app/global/global.dart';
-
 import '../mainScreens/home_screen.dart';
 
 class MySplashScreen extends StatefulWidget {
   const MySplashScreen({super.key});
-
   @override
   State<MySplashScreen> createState() => _MySplashScreenState();
 }
 
 class _MySplashScreenState extends State<MySplashScreen> {
-  startTimer() {
-    Timer(const Duration(seconds: 2), () async {
-      if (firebaseAuth.currentUser != null) {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()));
-      } else {
-        Navigator.push(context,
-            MaterialPageRoute(builder: (context) => const AuthScreen()));
-      }
+  @override
+  void initState() {
+    super.initState();
+    Timer(const Duration(milliseconds: 900), () {
+      if (!mounted) return;
+      final next = firebaseAuth.currentUser != null ? const HomeScreen() : const AuthScreen();
+      Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => next));
     });
   }
 
   @override
-  void initState() {
-    super.initState();
-    startTimer();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return Material(
-        child: Container(
-      color: Colors.white,
-      child: Center(
+    return const Scaffold(
+      body: Center(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Image.asset('assets/images/splash.jpg'),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: const [
-                  Text(
-                    'Sellers Food App',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 48,
-                        fontFamily: "Signatra",
-                        letterSpacing: 3),
-                  ),
-                  Text(
-                    "World's Largest & No.1 Food Delivery App",
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                        color: Colors.black54,
-                        fontSize: 24,
-                        fontFamily: "Signatra",
-                        letterSpacing: 3),
-                  ),
-                ],
-              ),
-            )
+            CircleAvatar(radius: 48, backgroundColor: Color(0xFFE0F2E9), child: Icon(Icons.storefront_rounded, size: 54, color: Color(0xFF166534))),
+            SizedBox(height: 18),
+            Text('ديرب للتجار', style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900)),
+            SizedBox(height: 6),
+            Text('متجرك وطلباتك في مكان واحد', style: TextStyle(color: Colors.black54)),
           ],
         ),
       ),
-    ));
+    );
   }
 }

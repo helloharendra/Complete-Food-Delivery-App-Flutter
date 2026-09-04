@@ -1,0 +1,345 @@
+name: Dierb VPS Control
+
+on:
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Task to run on the Windows VPS
+        required: true
+        default: inventory
+        type: choice
+        options:
+          - inventory
+          - analyze
+          - build_customer
+          - build_all
+          - repair_arabic
+          - full_verify
+  push:
+    branches:
+      - dierb-super-app
+    paths:
+      - .github/workflows/vps-control.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: dierb-vps-control
+  cancel-in-progress: true
+
+jobs:
+  vps:
+    runs-on: [self-hosted, Windows, X64]
+    timeout-minutes: 90
+    defaults:
+      run:
+        shell: powershell
+
+    steps:
+      - name: VPS inventory and safe source snapshot
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = 'C:\DierbPlatform\Dierb-FINAL'
+          $report = Join-Path $env:RUNNER_TEMP 'dierb-vps-inventory'
+          if (-not (Test-Path $root)) { throw "Project folder not found: $root" }
+          if (Test-Path $report) { Remove-Item $report -Recurse -Force }
+          New-Item $report -ItemType Directory | Out-Null
+
+          Write-Host "Runner user: $env:USERNAME"
+          Write-Host "Computer: $env:COMPUTERNAME"
+          Write-Host "Project: $root"
+          Set-Location $root
+          $gitCandidates = @(
+            'C:\\Program Files\\Git\\cmd\\git.exe',
+            'C:\\Program Files\\Git\\bin\\git.exe',
+            'C:\\Program Files (x86)\\Git\\cmd\\git.exe',
+            'C:\\DierbTools\\Git\\cmd\\git.exe'
+          )
+          $git = $gitCandidates | Where-Object { Test-Path $_ } | Select-Object -First 1
+          if ($git) {
+            & $git status --short --branch | Tee-Object (Join-Path $report 'git-status.txt')
+            & $git log -20 --date=iso --pretty=format:'%H%x09%ad%x09%s' | Out-File (Join-Path $report 'git-log.txt') -Encoding utf8
+            & $git remote -v | Out-File (Join-Path $report 'git-remotes.txt') -Encoding utf8
+            & $git diff --stat | Out-File (Join-Path $report 'diff-stat.txt') -Encoding utf8
+            & $git diff -- . ':(exclude)**/google-services.json' ':(exclude)**/firebase_options.dart' | Out-File (Join-Path $report 'working-tree.patch') -Encoding utf8
+            & $git ls-files --others --exclude-standard | Out-File (Join-Path $report 'untracked-files.txt') -Encoding utf8
+          } else {
+            'git.exe not installed or not visible to runner service' | Out-File (Join-Path $report 'git-unavailable.txt') -Encoding utf8
+          }
+
+          $known = @(
+            'user_app/lib/commerce/store_details_page.dart',
+            'user_app/lib/main.dart',
+            'seller_app/lib/uploadScreens.dart/menus_upload_screen.dart',
+            'seller_app/lib/main.dart',
+            'rider_app/lib/main.dart',
+            'seller_app/lib/mainScreens/new_orders_screen.dart',
+            'user_app/lib/mainScreens/my_orders_screen.dart',
+            'user_app/lib/orders/customer_orders_page.dart'
+          )
+          $sourceRoot = Join-Path $report 'current-source'
+          $cleanRoot = Join-Path $report 'clean-reference'
+          foreach ($relative in $known) {
+            $current = Join-Path $root $relative
+            if (Test-Path $current) {
+              $target = Join-Path $sourceRoot $relative
+              New-Item (Split-Path $target) -ItemType Directory -Force | Out-Null
+              Copy-Item $current $target
+            }
+            $clean = Join-Path 'C:\DierbPlatform\clean-arabic-source' $relative
+            if (Test-Path $clean) {
+              $target = Join-Path $cleanRoot $relative
+              New-Item (Split-Path $target) -ItemType Directory -Force | Out-Null
+              Copy-Item $clean $target
+            }
+          }
+
+          $badCharacters = @(
+            [string][char]0x00C3,
+            [string][char]0x00C2,
+            [string][char]0x00D8,
+            [string][char]0x00D9,
+            [string][char]0x00E2,
+            [string][char]0xFFFD
+          )
+          $dartRoots = @(
+            (Join-Path $root 'user_app\\lib'),
+            (Join-Path $root 'seller_app\\lib'),
+            (Join-Path $root 'rider_app\\lib'),
+            (Join-Path $root 'admin_web_portal\\lib'),
+            (Join-Path $root 'dierb_core\\lib')
+          ) | Where-Object { Test-Path $_ }
+          Get-ChildItem $dartRoots -Recurse -Filter '*.dart' -File |
+            Select-String -SimpleMatch -Pattern $badCharacters |
+            ForEach-Object { "$($_.Path):$($_.LineNumber):$($_.Line)" } |
+            Out-File (Join-Path $report 'mojibake-scan.txt') -Encoding utf8
+
+          & 'C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot\bin\java.exe' -version
+          "## VPS inventory captured" >> $env:GITHUB_STEP_SUMMARY
+          "Project path: $root" >> $env:GITHUB_STEP_SUMMARY
+          "Branch and working tree were inspected without checkout, pull, reset, or clean." >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Upload VPS inventory
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dierb-VPS-Inventory
+          path: ${{ runner.temp }}\dierb-vps-inventory
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Create protected working copy from authoritative VPS
+        if: ${{ github.event_name == 'push' || inputs.task == 'repair_arabic' || inputs.task == 'analyze' || inputs.task == 'build_customer' || inputs.task == 'build_all' || inputs.task == 'full_verify' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $sourceRoot = 'C:\DierbPlatform\Dierb-FINAL'
+          $workRoot = Join-Path $env:RUNNER_TEMP 'Dierb-FINAL-work'
+          if (Test-Path $workRoot) { Remove-Item $workRoot -Recurse -Force }
+          New-Item $workRoot -ItemType Directory -Force | Out-Null
+          $projects = @('user_app', 'seller_app', 'rider_app', 'admin_web_portal', 'packages')
+          foreach ($project in $projects) {
+            $source = Join-Path $sourceRoot $project
+            if (-not (Test-Path $source)) { continue }
+            $target = Join-Path $workRoot $project
+            & robocopy $source $target /E /R:1 /W:1 /XJ /SL /XD build .dart_tool .gradle node_modules .git ephemeral /XF '*.jks' '*.keystore' key.properties '.env' 'service-account*.json' | Out-Host
+            if ($LASTEXITCODE -gt 7) { throw "Working-copy failed for $project with robocopy code $LASTEXITCODE" }
+          }
+          foreach ($fileName in @('firestore.rules', 'firestore.indexes.json', 'firebase.json', 'storage.rules', 'pubspec.yaml', 'pubspec.lock')) {
+            $source = Join-Path $sourceRoot $fileName
+            if (Test-Path $source) { Copy-Item $source (Join-Path $workRoot $fileName) -Force }
+          }
+          "DIERB_WORK_ROOT=$workRoot" >> $env:GITHUB_ENV
+          Write-Host "Protected working copy: $workRoot"
+          "Authoritative VPS project remained read-only and unchanged." >> $env:GITHUB_STEP_SUMMARY
+          $global:LASTEXITCODE = 0
+
+      - name: Overlay branch fixes onto protected working copy
+        if: ${{ github.event_name == 'push' || inputs.task == 'repair_arabic' || inputs.task == 'analyze' || inputs.task == 'build_customer' || inputs.task == 'build_all' || inputs.task == 'full_verify' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = $env:DIERB_WORK_ROOT
+          $revision = $env:GITHUB_SHA
+          $paths = @(
+            'user_app/lib/commerce/store_details_page.dart',
+            'user_app/lib/main.dart',
+            'seller_app/lib/uploadScreens.dart/menus_upload_screen.dart',
+            'seller_app/lib/main.dart',
+            'rider_app/lib/main.dart',
+            'seller_app/lib/mainScreens/new_orders_screen.dart',
+            'user_app/lib/mainScreens/my_orders_screen.dart',
+            'user_app/lib/orders/customer_orders_page.dart'
+          )
+          foreach ($relative in $paths) {
+            $urlPath = $relative -replace '\\', '/'
+            $url = "https://raw.githubusercontent.com/capbeltagy-cell/Complete-Food-Delivery-App-Flutter/$revision/$urlPath"
+            $target = Join-Path $root $relative
+            Invoke-WebRequest -Uri $url -OutFile $target -UseBasicParsing
+          }
+          Write-Host "Overlayed $($paths.Count) branch files onto protected working copy."
+
+      - name: Repair Arabic encoding with rollback backup
+        if: ${{ github.event_name == 'push' || inputs.task == 'repair_arabic' || inputs.task == 'full_verify' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = $env:DIERB_WORK_ROOT
+          $stamp = Get-Date -Format 'yyyyMMdd-HHmmss'
+          $backup = Join-Path 'C:\DierbPlatform\encoding-backups' $stamp
+          New-Item $backup -ItemType Directory -Force | Out-Null
+          $dartRoots = @(
+            (Join-Path $root 'user_app\lib'),
+            (Join-Path $root 'seller_app\lib'),
+            (Join-Path $root 'rider_app\lib'),
+            (Join-Path $root 'admin_web_portal\lib'),
+            (Join-Path $root 'packages\dierb_core\lib')
+          ) | Where-Object { Test-Path $_ }
+          $markers = [char[]]@([char]0x00C3, [char]0x00C2, [char]0x00D8, [char]0x00D9, [char]0x00E2, [char]0xFFFD)
+          $cp1252Reverse = @{
+            0x20AC = 0x80; 0x201A = 0x82; 0x0192 = 0x83; 0x201E = 0x84
+            0x2026 = 0x85; 0x2020 = 0x86; 0x2021 = 0x87; 0x02C6 = 0x88
+            0x2030 = 0x89; 0x0160 = 0x8A; 0x2039 = 0x8B; 0x0152 = 0x8C
+            0x017D = 0x8E; 0x2018 = 0x91; 0x2019 = 0x92; 0x201C = 0x93
+            0x201D = 0x94; 0x2022 = 0x95; 0x2013 = 0x96; 0x2014 = 0x97
+            0x02DC = 0x98; 0x2122 = 0x99; 0x0161 = 0x9A; 0x203A = 0x9B
+            0x0153 = 0x9C; 0x017E = 0x9E; 0x0178 = 0x9F
+          }
+          $utf8Strict = New-Object System.Text.UTF8Encoding -ArgumentList @($false, $true)
+          $utf8NoBom = New-Object System.Text.UTF8Encoding -ArgumentList @($false)
+          $changed = New-Object System.Collections.Generic.List[string]
+
+          foreach ($file in Get-ChildItem $dartRoots -Recurse -Filter '*.dart' -File) {
+            $text = [IO.File]::ReadAllText($file.FullName, [Text.Encoding]::UTF8)
+            $lines = $text -split "\r?\n"
+            $didChange = $false
+            for ($i = 0; $i -lt $lines.Count; $i++) {
+              if ($lines[$i].IndexOfAny($markers) -lt 0) { continue }
+              try {
+                $characters = $lines[$i].ToCharArray()
+                $bytes = New-Object byte[] $characters.Length
+                for ($characterIndex = 0; $characterIndex -lt $characters.Length; $characterIndex++) {
+                  $codePoint = [int]$characters[$characterIndex]
+                  if ($codePoint -le 0xFF) {
+                    $bytes[$characterIndex] = [byte]$codePoint
+                  } elseif ($cp1252Reverse.ContainsKey($codePoint)) {
+                    $bytes[$characterIndex] = [byte]$cp1252Reverse[$codePoint]
+                  } else {
+                    throw "Line contains a non-mojibake Unicode character"
+                  }
+                }
+                $decoded = $utf8Strict.GetString($bytes)
+                if ($decoded -ne $lines[$i] -and $decoded.IndexOf([char]0xFFFD) -lt 0) {
+                  $lines[$i] = $decoded
+                  $didChange = $true
+                }
+              } catch {
+                Write-Warning "Could not automatically repair $($file.FullName):$($i + 1)"
+              }
+            }
+            if ($didChange) {
+              $relative = $file.FullName.Substring($root.Length).TrimStart('\')
+              $backupFile = Join-Path $backup $relative
+              New-Item (Split-Path $backupFile) -ItemType Directory -Force | Out-Null
+              Copy-Item $file.FullName $backupFile
+              if ($file.IsReadOnly) { $file.IsReadOnly = $false }
+              [IO.File]::WriteAllText($file.FullName, ($lines -join [Environment]::NewLine), $utf8NoBom)
+              $changed.Add($relative)
+            }
+          }
+
+          $remaining = New-Object System.Collections.Generic.List[string]
+          foreach ($file in Get-ChildItem $dartRoots -Recurse -Filter '*.dart' -File) {
+            $lineNumber = 0
+            foreach ($line in [IO.File]::ReadLines($file.FullName, [Text.Encoding]::UTF8)) {
+              $lineNumber++
+              if ($line.IndexOfAny($markers) -ge 0) {
+                $remaining.Add("$($file.FullName):${lineNumber}:$line")
+              }
+            }
+          }
+          $changed | Out-File (Join-Path $env:RUNNER_TEMP 'arabic-repaired-files.txt') -Encoding utf8
+          $remaining | Out-File (Join-Path $env:RUNNER_TEMP 'arabic-remaining.txt') -Encoding utf8
+          Write-Host "Repaired Dart files: $($changed.Count)"
+          if ($remaining.Count -gt 0) {
+            $remaining | Select-Object -First 100 | Write-Host
+            throw "Arabic encoding verification failed: $($remaining.Count) suspicious lines remain"
+          }
+          "## Arabic encoding verified" >> $env:GITHUB_STEP_SUMMARY
+          "Repaired files: $($changed.Count); remaining suspicious lines: 0" >> $env:GITHUB_STEP_SUMMARY
+
+      - name: Capture repaired source
+        if: ${{ github.event_name == 'push' || inputs.task == 'repair_arabic' || inputs.task == 'full_verify' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $root = $env:DIERB_WORK_ROOT
+          $out = Join-Path $env:RUNNER_TEMP 'dierb-repaired-source'
+          New-Item $out -ItemType Directory -Force | Out-Null
+          foreach ($project in @('user_app', 'seller_app', 'rider_app', 'admin_web_portal', 'packages')) {
+            $source = Join-Path $root $project
+            if (Test-Path $source) {
+              Copy-Item $source (Join-Path $out $project) -Recurse -Force
+            }
+          }
+          foreach ($fileName in @('firestore.rules', 'firestore.indexes.json', 'firebase.json', 'storage.rules')) {
+            $source = Join-Path $root $fileName
+            if (Test-Path $source) { Copy-Item $source (Join-Path $out $fileName) -Force }
+          }
+          Copy-Item (Join-Path $env:RUNNER_TEMP 'arabic-repaired-files.txt') $out
+          Copy-Item (Join-Path $env:RUNNER_TEMP 'arabic-remaining.txt') $out
+
+      - name: Upload repaired source checkpoint
+        if: ${{ github.event_name == 'push' || inputs.task == 'repair_arabic' || inputs.task == 'full_verify' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dierb-Repaired-Arabic-Source
+          path: ${{ runner.temp }}\dierb-repaired-source
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Analyze Flutter apps
+        if: ${{ github.event_name == 'push' || inputs.task == 'analyze' || inputs.task == 'build_all' || inputs.task == 'full_verify' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $flutter = 'C:\DierbTools\flutter\bin\flutter.bat'
+          $root = $env:DIERB_WORK_ROOT
+          foreach ($app in @('user_app','seller_app','rider_app')) {
+            Write-Host "===== ANALYZE $app ====="
+            Set-Location (Join-Path $root $app)
+            & $flutter pub get
+            if ($LASTEXITCODE -ne 0) { throw "pub get failed: $app" }
+            & $flutter analyze --no-fatal-infos --no-fatal-warnings
+            if ($LASTEXITCODE -ne 0) { throw "analyze failed: $app" }
+          }
+
+      - name: Build customer APK
+        if: ${{ inputs.task == 'build_customer' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $flutter = 'C:\DierbTools\flutter\bin\flutter.bat'
+          $root = $env:DIERB_WORK_ROOT
+          Set-Location (Join-Path $root 'user_app')
+          & $flutter pub get
+          if ($LASTEXITCODE -ne 0) { throw 'pub get failed' }
+          & $flutter build apk --release
+          if ($LASTEXITCODE -ne 0) { throw 'customer build failed' }
+          Copy-Item '.\build\app\outputs\flutter-apk\app-release.apk' (Join-Path $root 'FinalApps\Dierb-Customer.apk') -Force
+
+      - name: Build all APKs
+        if: ${{ inputs.task == 'build_all' }}
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $flutter = 'C:\DierbTools\flutter\bin\flutter.bat'
+          $root = $env:DIERB_WORK_ROOT
+          $apps = @(
+            @{ dir='user_app'; out='Dierb-Customer.apk' },
+            @{ dir='seller_app'; out='Dierb-Merchant.apk' },
+            @{ dir='rider_app'; out='Dierb-Rider.apk' }
+          )
+          foreach ($app in $apps) {
+            Write-Host "===== BUILD $($app.dir) ====="
+            Set-Location (Join-Path $root $app.dir)
+            & $flutter pub get
+            if ($LASTEXITCODE -ne 0) { throw "pub get failed: $($app.dir)" }
+            & $flutter build apk --release
+            if ($LASTEXITCODE -ne 0) { throw "build failed: $($app.dir)" }
+            Copy-Item '.\build\app\outputs\flutter-apk\app-release.apk' (Join-Path $root "FinalApps\$($app.out)") -Force
+          }
+          Get-ChildItem (Join-Path $root 'FinalApps') -Filter '*.apk' | Select-Object Name, Length, LastWriteTime

@@ -1,0 +1,17 @@
+{
+  "schemaVersion": 1,
+  "cities": [
+    {
+      "id": "dierb-nigm",
+      "nameAr": "ديرب نجم",
+      "nameEn": "Dierb Nigm",
+      "governorateCode": "EG-SHR",
+      "active": true,
+      "sortOrder": 10
+    }
+  ],
+  "areas": [],
+  "villages": [],
+  "serviceZones": [],
+  "notes": "Areas, villages and service zones are intentionally managed by Admin/Firestore and are not embedded in Flutter widgets."
+}
